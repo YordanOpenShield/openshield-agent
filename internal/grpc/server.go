@@ -1,6 +1,7 @@
 package grpcserver
 
 import (
+	"context"
 	"fmt"
 	"log"
 	"net"
@@ -27,4 +28,10 @@ func StartGRPCServer(port int) error {
 
 	log.Printf("[AGENT] gRPC server listening on port %d", port)
 	return grpcServer.Serve(lis)
+}
+
+// RegisterAgent registers the agent with the manager and returns the agent ID and token.
+func (s *AgentServer) Heartbeat(ctx context.Context, req *proto.HeartbeatRequest) (*proto.HeartbeatResponse, error) {
+	log.Printf("[AGENT] Received heartbeat from manager for agent %s", req.AgentId)
+	return &proto.HeartbeatResponse{Ok: true, Message: "Alive"}, nil
 }

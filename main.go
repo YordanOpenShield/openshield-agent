@@ -17,7 +17,7 @@ func main() {
 	}
 
 	// Start the heartbeat to the manager
-	utils.StartHeartbeat(config.ManagerURL, 10*time.Second)
+	utils.StartHeartbeat(config.ManagerURL, 1*time.Minute)
 
 	// Start the gRPC server
 	err = grpcserver.StartGRPCServer(50051)
