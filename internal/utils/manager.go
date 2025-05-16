@@ -14,6 +14,8 @@ import (
 
 	"github.com/denisbrodbeck/machineid"
 	"github.com/zalando/go-keyring"
+
+	"openshield-agent/internal/executor"
 )
 
 // GetDeviceID retrieves the unique machine/device ID using the machineid package.
@@ -118,7 +120,19 @@ func RegisterAgent(managerURL string, agentInfo map[string]interface{}) error {
 }
 
 // GetLocalAddress retrieves the non-loopback local IP address of the machine.
+// It first tries to use osquery via executor.RunOSQuery, and falls back to the old approach if that fails.
 func GetLocalAddress() (string, error) {
+	// Try using osquery
+	query := "SELECT address FROM interface_addresses WHERE address NOT LIKE '127.%' AND address NOT LIKE '169.254.%' AND address LIKE '%.%' LIMIT 1;"
+	results, err := executor.RunOSQuery(query)
+	if err == nil && len(results) > 0 {
+		if addr, ok := results[0]["address"]; ok {
+			if addrStr, ok := addr.(string); ok && addrStr != "" {
+				return addrStr, nil
+			}
+		}
+	}
+	// Fallback to old approach
 	addrs, err := net.InterfaceAddrs()
 	if err != nil {
 		return "", fmt.Errorf("failed to get network interfaces: %w", err)

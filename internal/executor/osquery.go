@@ -1,6 +1,7 @@
 package executor
 
 import (
+	"encoding/json"
 	"fmt"
 	"os"
 	"os/exec"
@@ -26,12 +27,20 @@ func checkOsqueryAvailable() error {
 	return nil
 }
 
-func runOsquery(query string) (string, error) {
+func RunOSQuery(query string) ([]map[string]interface{}, error) {
+	if err := checkOsqueryAvailable(); err != nil {
+		return nil, err
+	}
 	osqueryPath := getOsqueryPath()
 	cmd := exec.Command(osqueryPath, "--json", query)
 	output, err := cmd.CombinedOutput()
 	if err != nil {
-		return "", fmt.Errorf("failed to run osquery: %v\nOutput: %s", err, string(output))
+		return nil, fmt.Errorf("failed to run osquery: %v\nOutput: %s", err, string(output))
 	}
-	return string(output), nil
+
+	var result []map[string]interface{}
+	if err := json.Unmarshal(output, &result); err != nil {
+		return nil, fmt.Errorf("failed to parse osquery output: %v\nOutput: %s", err, string(output))
+	}
+	return result, nil
 }
