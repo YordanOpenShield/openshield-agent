@@ -55,7 +55,7 @@ func downloadLinuxOsquery(binDir string) error {
 		}
 		fmt.Printf("Extracting %s\n", hdr.Name)
 		// osqueryi is usually in ./osquery-<version>/usr/bin/osqueryi
-		if filepath.Base(hdr.Name) == "osqueryi" && hdr.Typeflag == tar.TypeReg {
+		if filepath.Base(hdr.Name) == "usr/bin/osqueryi" && hdr.Typeflag == tar.TypeReg {
 			outPath := filepath.Join(binDir, "osqueryi")
 			outFile, err := os.OpenFile(outPath, os.O_CREATE|os.O_WRONLY|os.O_TRUNC, 0755)
 			if err != nil {
