@@ -8,6 +8,8 @@ import (
 	"log"
 	"net"
 	"net/http"
+	"os"
+	"path/filepath"
 	"time"
 
 	"github.com/denisbrodbeck/machineid"
@@ -21,6 +23,48 @@ func GetDeviceID() (string, error) {
 		return "", fmt.Errorf("failed to get device ID: %w", err)
 	}
 	return id, nil
+}
+
+// Path to fallback credentials file
+const credentialsFile = "config/agent_credentials.json"
+
+type AgentCredentials struct {
+	AgentID    string `json:"agent_id"`
+	AgentToken string `json:"agent_token"`
+}
+
+// Save credentials to file
+func saveCredentialsToFile(creds AgentCredentials) error {
+	_ = os.MkdirAll(filepath.Dir(credentialsFile), 0700)
+	f, err := os.OpenFile(credentialsFile, os.O_CREATE|os.O_WRONLY|os.O_TRUNC, 0600)
+	if err != nil {
+		return err
+	}
+	defer f.Close()
+	return json.NewEncoder(f).Encode(&creds)
+}
+
+// Load credentials from file
+func loadCredentialsFromFile() (AgentCredentials, error) {
+	var creds AgentCredentials
+	f, err := os.Open(credentialsFile)
+	if err != nil {
+		return creds, err
+	}
+	defer f.Close()
+	err = json.NewDecoder(f).Decode(&creds)
+	return creds, err
+}
+
+// Try to get credentials from keyring, fallback to file
+func getAgentCredentials() (AgentCredentials, error) {
+	id, errID := keyring.Get("openshield-agent", "agent_id")
+	token, errToken := keyring.Get("openshield-agent", "agent_token")
+	if errID == nil && errToken == nil {
+		return AgentCredentials{AgentID: id, AgentToken: token}, nil
+	}
+	// Fallback to file
+	return loadCredentialsFromFile()
 }
 
 // RegisterAgent registers the agent with the manager via a POST request and stores credentials in the OS keyring.
@@ -59,12 +103,17 @@ func RegisterAgent(managerURL string, agentInfo map[string]interface{}) error {
 	}
 	// Store credentials in OS keyring
 	if err := keyring.Set("openshield-agent", "agent_id", result.AgentID); err != nil {
-		return fmt.Errorf("failed to store agent_id in keyring: %w", err)
+		log.Printf("[AGENT] Failed to store agent_id in keyring: %v", err)
 	}
 	if err := keyring.Set("openshield-agent", "agent_token", result.AgentToken); err != nil {
-		return fmt.Errorf("failed to store agent_token in keyring: %w", err)
+		log.Printf("[AGENT] Failed to store agent_token in keyring: %v", err)
 	}
-	log.Println("[AGENT] Registered with manager successfully and credentials stored in keyring.")
+	// Always save to file as fallback
+	creds := AgentCredentials{AgentID: result.AgentID, AgentToken: result.AgentToken}
+	if err := saveCredentialsToFile(creds); err != nil {
+		log.Printf("[AGENT] Failed to save credentials to file: %v", err)
+	}
+	log.Println("[AGENT] Registered with manager successfully and credentials stored.")
 	return nil
 }
 
@@ -91,20 +140,10 @@ func GetLocalAddress() (string, error) {
 func StartHeartbeat(managerURL string, interval time.Duration) {
 	go func() {
 		for {
-			agentID, err := keyring.Get("openshield-agent", "agent_id")
+			creds, err := getAgentCredentials()
 			if err != nil {
-				log.Printf("[AGENT] Failed to retrieve agent_id from keyring: %v", err)
+				log.Printf("[AGENT] Failed to retrieve credentials: %v", err)
 				time.Sleep(interval)
-				// Register again if heartbeat fails
-				agentInfo := make(map[string]interface{})
-				RegisterAgent(managerURL, agentInfo)
-				continue
-			}
-			agentToken, err := keyring.Get("openshield-agent", "agent_token")
-			if err != nil {
-				log.Printf("[AGENT] Failed to retrieve agent_token from keyring: %v", err)
-				time.Sleep(interval)
-				// Register again if heartbeat fails
 				agentInfo := make(map[string]interface{})
 				RegisterAgent(managerURL, agentInfo)
 				continue
@@ -117,7 +156,7 @@ func StartHeartbeat(managerURL string, interval time.Duration) {
 			}
 
 			payload := map[string]string{
-				"id":      agentID,
+				"id":      creds.AgentID,
 				"address": localAddr,
 			}
 			body, _ := json.Marshal(payload)
@@ -130,7 +169,7 @@ func StartHeartbeat(managerURL string, interval time.Duration) {
 				continue
 			}
 			req.Header.Set("Content-Type", "application/json")
-			req.Header.Set("X-Agent-Token", agentToken)
+			req.Header.Set("X-Agent-Token", creds.AgentToken)
 
 			resp, err := http.DefaultClient.Do(req)
 			if err != nil {
