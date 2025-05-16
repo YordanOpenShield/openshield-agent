@@ -45,7 +45,6 @@ func downloadLinuxOsquery(binDir string) error {
 	defer gzr.Close()
 
 	tr := tar.NewReader(gzr)
-	var found bool
 	for {
 		hdr, err := tr.Next()
 		if err == io.EOF {
@@ -53,25 +52,26 @@ func downloadLinuxOsquery(binDir string) error {
 		} else if err != nil {
 			return fmt.Errorf("error reading tar archive: %w", err)
 		}
-		fmt.Printf("Extracting %s\n", hdr.Name)
-		// osqueryi is usually in ./osquery-<version>/usr/bin/osqueryi
-		if filepath.Base(hdr.Name) == "usr/bin/osqueryi" && hdr.Typeflag == tar.TypeReg {
-			outPath := filepath.Join(binDir, "osqueryi")
-			outFile, err := os.OpenFile(outPath, os.O_CREATE|os.O_WRONLY|os.O_TRUNC, 0755)
-			if err != nil {
-				return fmt.Errorf("failed to create osqueryi: %w", err)
+		targetPath := filepath.Join(binDir, hdr.Name)
+		switch hdr.Typeflag {
+		case tar.TypeDir:
+			if err := os.MkdirAll(targetPath, os.FileMode(hdr.Mode)); err != nil {
+				return fmt.Errorf("failed to create directory %s: %w", targetPath, err)
 			}
-			_, err = io.Copy(outFile, tr)
+		case tar.TypeReg:
+			if err := os.MkdirAll(filepath.Dir(targetPath), 0755); err != nil {
+				return fmt.Errorf("failed to create parent directory for %s: %w", targetPath, err)
+			}
+			outFile, err := os.OpenFile(targetPath, os.O_CREATE|os.O_WRONLY|os.O_TRUNC, os.FileMode(hdr.Mode))
+			if err != nil {
+				return fmt.Errorf("failed to create file %s: %w", targetPath, err)
+			}
+			if _, err := io.Copy(outFile, tr); err != nil {
+				outFile.Close()
+				return fmt.Errorf("failed to write file %s: %w", targetPath, err)
+			}
 			outFile.Close()
-			if err != nil {
-				return fmt.Errorf("failed to write osqueryi: %w", err)
-			}
-			found = true
-			break
 		}
-	}
-	if !found {
-		return fmt.Errorf("osqueryi binary not found in archive")
 	}
 	return nil
 }
