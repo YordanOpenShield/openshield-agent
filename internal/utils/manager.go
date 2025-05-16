@@ -123,7 +123,7 @@ func RegisterAgent(managerURL string, agentInfo map[string]interface{}) error {
 // It first tries to use osquery via executor.RunOSQuery, and falls back to the old approach if that fails.
 func GetLocalAddress() (string, error) {
 	// Try using osquery
-	query := "SELECT address FROM interface_addresses WHERE mask = 24 AND address != '127.0.0.1' LIMIT 1;"
+	query := "SELECT address FROM interface_addresses WHERE address NOT LIKE '127.%' AND address NOT LIKE '169.254.%' AND address LIKE '%.%' LIMIT 1;"
 	results, err := executor.RunOSQuery(query)
 	if err == nil && len(results) > 0 {
 		if addr, ok := results[0]["address"]; ok {
@@ -150,6 +150,45 @@ func GetLocalAddress() (string, error) {
 	return "", fmt.Errorf("no non-loopback address found")
 }
 
+// GetAllLocalAddresses returns all non-loopback, non-APIPA IPv4 addresses.
+func GetAllLocalAddresses() ([]string, error) {
+	var addresses []string
+
+	// Try using osquery first
+	query := "SELECT address FROM interface_addresses WHERE address NOT LIKE '127.%' AND address NOT LIKE '169.254.%' AND address LIKE '%.%';"
+	results, err := executor.RunOSQuery(query)
+	if err == nil && len(results) > 0 {
+		for _, row := range results {
+			if addr, ok := row["address"]; ok {
+				if addrStr, ok := addr.(string); ok && addrStr != "" {
+					addresses = append(addresses, addrStr)
+				}
+			}
+		}
+	}
+	// Fallback to net.InterfaceAddrs if osquery fails or returns nothing
+	if len(addresses) == 0 {
+		addrs, err := net.InterfaceAddrs()
+		if err != nil {
+			return nil, fmt.Errorf("failed to get network interfaces: %w", err)
+		}
+		for _, addr := range addrs {
+			if ipnet, ok := addr.(*net.IPNet); ok && !ipnet.IP.IsLoopback() && ipnet.IP.To4() != nil {
+				ip := ipnet.IP.To4()
+				// Skip APIPA addresses (169.254.x.x)
+				if ip[0] == 169 && ip[1] == 254 {
+					continue
+				}
+				addresses = append(addresses, ip.String())
+			}
+		}
+	}
+	if len(addresses) == 0 {
+		return nil, fmt.Errorf("no non-loopback addresses found")
+	}
+	return addresses, nil
+}
+
 // StartHeartbeat starts a goroutine that sends a heartbeat to the manager every interval.
 func StartHeartbeat(managerURL string, interval time.Duration) {
 	go func() {
@@ -163,15 +202,15 @@ func StartHeartbeat(managerURL string, interval time.Duration) {
 				continue
 			}
 
-			localAddr, err := GetLocalAddress()
+			addresses, err := GetAllLocalAddresses()
 			if err != nil {
-				log.Printf("[AGENT] Failed to get local address: %v", err)
-				localAddr = ""
+				log.Printf("[AGENT] Failed to get local addresses: %v", err)
+				addresses = []string{}
 			}
 
-			payload := map[string]string{
-				"id":      creds.AgentID,
-				"address": localAddr,
+			payload := map[string]interface{}{
+				"id":        creds.AgentID,
+				"addresses": addresses,
 			}
 			body, _ := json.Marshal(payload)
 			url := managerURL + "/agents/heartbeat"
