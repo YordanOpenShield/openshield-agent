@@ -34,40 +34,45 @@ func downloadLinuxOsquery(binDir string) error {
 	url := "https://pkg.osquery.io/linux/osquery-5.9.1_1.linux_x86_64.tar.gz"
 	resp, err := http.Get(url)
 	if err != nil {
-		return err
+		return fmt.Errorf("failed to download osquery: %w", err)
 	}
 	defer resp.Body.Close()
 
 	gzr, err := gzip.NewReader(resp.Body)
 	if err != nil {
-		return err
+		return fmt.Errorf("failed to create gzip reader: %w", err)
 	}
 	defer gzr.Close()
 
 	tr := tar.NewReader(gzr)
+	var found bool
 	for {
 		hdr, err := tr.Next()
 		if err == io.EOF {
 			break
 		} else if err != nil {
-			return err
+			return fmt.Errorf("error reading tar archive: %w", err)
 		}
-		if filepath.Base(hdr.Name) == "osqueryi" {
+		// osqueryi is usually in ./osquery-<version>/usr/bin/osqueryi
+		if filepath.Base(hdr.Name) == "osqueryi" && hdr.Typeflag == tar.TypeReg {
 			outPath := filepath.Join(binDir, "osqueryi")
-			outFile, err := os.Create(outPath)
+			outFile, err := os.OpenFile(outPath, os.O_CREATE|os.O_WRONLY|os.O_TRUNC, 0755)
 			if err != nil {
-				return err
+				return fmt.Errorf("failed to create osqueryi: %w", err)
 			}
-			defer outFile.Close()
 			_, err = io.Copy(outFile, tr)
+			outFile.Close()
 			if err != nil {
-				return err
+				return fmt.Errorf("failed to write osqueryi: %w", err)
 			}
-			err = os.Chmod(outPath, 0755)
-			return err
+			found = true
+			break
 		}
 	}
-	return fmt.Errorf("osqueryi binary not found in archive")
+	if !found {
+		return fmt.Errorf("osqueryi binary not found in archive")
+	}
+	return nil
 }
 
 func downloadWindowsOsquery(binDir string) error {

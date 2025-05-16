@@ -123,7 +123,7 @@ func RegisterAgent(managerURL string, agentInfo map[string]interface{}) error {
 // It first tries to use osquery via executor.RunOSQuery, and falls back to the old approach if that fails.
 func GetLocalAddress() (string, error) {
 	// Try using osquery
-	query := "SELECT address FROM interface_addresses WHERE address NOT LIKE '127.%' AND address NOT LIKE '169.254.%' AND address LIKE '%.%' LIMIT 1;"
+	query := "SELECT address FROM interface_addresses WHERE mask = 24 AND address != '127.0.0.1' LIMIT 1;"
 	results, err := executor.RunOSQuery(query)
 	if err == nil && len(results) > 0 {
 		if addr, ok := results[0]["address"]; ok {
