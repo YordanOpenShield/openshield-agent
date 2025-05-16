@@ -32,7 +32,7 @@ func RegisterAgent(managerURL string, agentInfo map[string]interface{}) error {
 	}
 	agentInfo["device_id"] = deviceID
 
-	url := managerURL + "/api/agents/register"
+	url := managerURL + "/agents/register"
 	body, err := json.Marshal(agentInfo)
 	fmt.Printf("[AGENT] Registering agent with body: %s\n", string(body))
 	if err != nil {
@@ -121,7 +121,7 @@ func StartHeartbeat(managerURL string, interval time.Duration) {
 				"address": localAddr,
 			}
 			body, _ := json.Marshal(payload)
-			url := managerURL + "/api/agents/heartbeat"
+			url := managerURL + "/agents/heartbeat"
 
 			req, err := http.NewRequest("POST", url, bytes.NewBuffer(body))
 			if err != nil {

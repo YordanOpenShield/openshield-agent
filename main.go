@@ -1,9 +1,11 @@
 package main
 
 import (
+	"fmt"
 	"log"
 	grpcserver "openshield-agent/internal/grpc"
 	"openshield-agent/internal/utils"
+	"os"
 	"time"
 )
 
@@ -15,6 +17,14 @@ func main() {
 	if err != nil {
 		log.Fatalf("Failed to load config: %v", err)
 	}
+
+	// Setup osquery
+	err = utils.SetupOsquery()
+	if err != nil {
+		fmt.Println("Error setting up osquery:", err)
+		os.Exit(1)
+	}
+	fmt.Println("osquery setup complete.")
 
 	// Start the heartbeat to the manager
 	utils.StartHeartbeat(config.ManagerURL, 1*time.Minute)
