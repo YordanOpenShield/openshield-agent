@@ -2,11 +2,12 @@ package main
 
 import (
 	"log"
-	"openshield-agent/internal/api"
 	"openshield-agent/internal/config"
-	grpcserver "openshield-agent/internal/grpc"
+	agentgrpc "openshield-agent/internal/grpc"
 	"os/exec"
 	"time"
+
+	"openshield-agent/internal/service"
 )
 
 const configFile = "config/config.yml"
@@ -24,11 +25,12 @@ func main() {
 		log.Fatalf("Failed to load config: %v", err)
 	}
 
-	// Start the heartbeat to the manager
-	api.StartHeartbeat(1 * time.Minute)
+	// Start background tasks
+	stopHeartbeat := make(chan struct{})
+	service.ManagerHeartbeatMonitor(10*time.Second, stopHeartbeat)
 
 	// Start the gRPC server
-	err = grpcserver.StartGRPCServer(50051)
+	err = agentgrpc.StartGRPCServer(50051)
 	if err != nil {
 		log.Fatalf("Failed to start gRPC server: %v", err)
 	}

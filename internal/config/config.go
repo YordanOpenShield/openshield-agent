@@ -9,8 +9,10 @@ import (
 var GlobalConfig Config
 
 type Config struct {
-	MANAGER_URL     string `yaml:"MANAGER_URL"`
-	COMMAND_TIMEOUT string `yaml:"COMMAND_TIMEOUT"`
+	MANAGER_ADDRESS   string `yaml:"MANAGER_ADDRESS"`
+	MANAGER_API_PORT  string `yaml:"MANAGER_API_PORT"`
+	MANAGER_GRPC_PORT string `yaml:"MANAGER_GRPC_PORT"`
+	COMMAND_TIMEOUT   string `yaml:"COMMAND_TIMEOUT"`
 }
 
 func LoadConfig(path string) (*Config, error) {
