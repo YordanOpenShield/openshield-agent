@@ -12,6 +12,7 @@ var CommandWhitelist = []models.Command{
 	{Command: "whoami", TargetOS: models.OSLinux},
 	{Command: "timeout", TargetOS: models.OSWindows},
 	{Command: "ping", TargetOS: models.OSWindows},
+	{Command: "ping", TargetOS: models.OSLinux},
 }
 
 // IsCommandWhitelisted checks if the command is in the whitelist.

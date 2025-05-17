@@ -14,7 +14,7 @@ func main() {
 	// Check if osqueryi is installed
 	_, err := exec.LookPath("osqueryi")
 	if err != nil {
-		log.Fatal("osqueryi is not installed or not in PATH. Please install osquery using your system's package manager.")
+		log.Printf("osqueryi is not installed or not in PATH. Please install osquery using your system's package manager.")
 	}
 
 	// Load the configuration file
