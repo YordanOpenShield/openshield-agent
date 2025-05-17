@@ -38,7 +38,14 @@ func DeleteAgentCredentials() error {
 
 // RegisterAgent registers the agent with the manager.
 func (c *ManagerClient) RegisterAgent(ctx context.Context) (*proto.RegisterAgentResponse, error) {
-	resp, err := c.client.RegisterAgent(ctx, &proto.RegisterAgentRequest{})
+	// Get device's ID
+	deviceID, err := utils.GetDeviceID()
+	if err != nil {
+		return nil, err
+
+	}
+
+	resp, err := c.client.RegisterAgent(ctx, &proto.RegisterAgentRequest{DeviceId: deviceID})
 	if err != nil {
 		return nil, err
 	}
