@@ -1,4 +1,4 @@
-package utils
+package config
 
 import (
 	"os"
@@ -6,9 +6,11 @@ import (
 	"gopkg.in/yaml.v2"
 )
 
+var GlobalConfig Config
+
 type Config struct {
-	ManagerURL      string `yaml:"MANAGER_URL"`
-	COMMAND_TIMEOUT int    `yaml:"COMMAND_TIMEOUT"`
+	MANAGER_URL     string `yaml:"MANAGER_URL"`
+	COMMAND_TIMEOUT string `yaml:"COMMAND_TIMEOUT"`
 }
 
 func LoadConfig(path string) (*Config, error) {
@@ -21,4 +23,13 @@ func LoadConfig(path string) (*Config, error) {
 		return nil, err
 	}
 	return &cfg, nil
+}
+
+func LoadAndSetConfig(path string) error {
+	cfg, err := LoadConfig(path)
+	if err != nil {
+		return err
+	}
+	GlobalConfig = *cfg
+	return nil
 }

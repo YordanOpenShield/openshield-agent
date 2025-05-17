@@ -1,4 +1,4 @@
-package utils
+package api
 
 import (
 	"bytes"
@@ -15,6 +15,7 @@ import (
 	"github.com/denisbrodbeck/machineid"
 	"github.com/zalando/go-keyring"
 
+	"openshield-agent/internal/config"
 	"openshield-agent/internal/executor"
 )
 
@@ -190,7 +191,9 @@ func GetAllLocalAddresses() ([]string, error) {
 }
 
 // StartHeartbeat starts a goroutine that sends a heartbeat to the manager every interval.
-func StartHeartbeat(managerURL string, interval time.Duration) {
+func StartHeartbeat(interval time.Duration) {
+	config := config.GlobalConfig
+
 	go func() {
 		for {
 			creds, err := getAgentCredentials()
@@ -198,7 +201,7 @@ func StartHeartbeat(managerURL string, interval time.Duration) {
 				log.Printf("[AGENT] Failed to retrieve credentials: %v", err)
 				time.Sleep(interval)
 				agentInfo := make(map[string]interface{})
-				RegisterAgent(managerURL, agentInfo)
+				RegisterAgent(config.MANAGER_URL, agentInfo)
 				continue
 			}
 
@@ -213,7 +216,7 @@ func StartHeartbeat(managerURL string, interval time.Duration) {
 				"addresses": addresses,
 			}
 			body, _ := json.Marshal(payload)
-			url := managerURL + "/agents/heartbeat"
+			url := config.MANAGER_URL + "/agents/heartbeat"
 
 			req, err := http.NewRequest("POST", url, bytes.NewBuffer(body))
 			if err != nil {
@@ -232,7 +235,7 @@ func StartHeartbeat(managerURL string, interval time.Duration) {
 				if resp.StatusCode == http.StatusUnauthorized {
 					log.Printf("[AGENT] Heartbeat unauthorized (401), re-registering agent.")
 					agentInfo := make(map[string]interface{})
-					RegisterAgent(managerURL, agentInfo)
+					RegisterAgent(config.MANAGER_URL, agentInfo)
 				} else if resp.StatusCode != http.StatusOK {
 					log.Printf("[AGENT] Heartbeat failed: %s", resp.Status)
 				} else {

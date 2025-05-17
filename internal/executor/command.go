@@ -4,8 +4,8 @@ import (
 	"context"
 	"errors"
 	"log"
+	"openshield-agent/internal/config"
 	"openshield-agent/internal/models"
-	"os"
 	"os/exec"
 	"strconv"
 	"time"
@@ -30,7 +30,9 @@ func ExecuteCommand(cmd models.Command) (string, error) {
 
 // runCommand executes a command with a timeout.
 func runCommand(command string, args ...string) (string, error) {
-	timeoutStr := os.Getenv("COMMAND_TIMEOUT")
+	config := config.GlobalConfig
+
+	timeoutStr := config.COMMAND_TIMEOUT
 	timeout := 30 // default timeout in seconds
 	if timeoutStr != "" {
 		if t, err := strconv.Atoi(timeoutStr); err == nil {
