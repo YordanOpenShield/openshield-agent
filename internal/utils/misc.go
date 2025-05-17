@@ -7,7 +7,8 @@ import (
 )
 
 type Config struct {
-	ManagerURL string `yaml:"manager_url"`
+	ManagerURL      string `yaml:"MANAGER_URL"`
+	COMMAND_TIMEOUT int    `yaml:"COMMAND_TIMEOUT"`
 }
 
 func LoadConfig(path string) (*Config, error) {

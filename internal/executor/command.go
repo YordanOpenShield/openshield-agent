@@ -24,9 +24,8 @@ func ExecuteCommand(cmd models.Command) (string, error) {
 		return "", errors.New("command not whitelisted")
 	}
 
-	execCmd := exec.Command(cmd.Command, cmd.Args...)
-	out, err := execCmd.CombinedOutput()
-	return string(out), err
+	out, err := runCommand(cmd.Command, cmd.Args...)
+	return out, err
 }
 
 // runCommand executes a command with a timeout.
