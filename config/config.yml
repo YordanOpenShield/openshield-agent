@@ -1,1 +1,2 @@
-manager_url: "http://localhost:9000"
+MANAGER_URL: "http://localhost:9000"
+COMMAND_TIMEOUT: 60
