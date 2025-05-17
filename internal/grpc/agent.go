@@ -6,6 +6,8 @@ import (
 	"log"
 	"openshield-agent/internal/utils"
 	"openshield-agent/proto"
+	"os"
+	"path/filepath"
 
 	"github.com/zalando/go-keyring"
 	"google.golang.org/protobuf/types/known/emptypb"
@@ -18,9 +20,25 @@ func clearAgentKeyring() error {
 	return nil
 }
 
+// DeleteAgentCredentialsFile deletes the agent_credentials.json file from the config directory.
+func DeleteAgentCredentialsFile() error {
+	configPath := filepath.Join("config", "agent_credentials.json")
+	return os.Remove(configPath)
+}
+
+func DeleteAgentCredentials() error {
+	if err := clearAgentKeyring(); err != nil {
+		return err
+	}
+	if err := DeleteAgentCredentialsFile(); err != nil {
+		return err
+	}
+	return nil
+}
+
 // RegisterAgent registers the agent with the manager.
 func (c *ManagerClient) RegisterAgent(ctx context.Context) (*proto.RegisterAgentResponse, error) {
-	resp, err := c.client.RegisterAgent(ctx, &emptypb.Empty{})
+	resp, err := c.client.RegisterAgent(ctx, &proto.RegisterAgentRequest{})
 	if err != nil {
 		return nil, err
 	}
@@ -47,7 +65,7 @@ func (c *ManagerClient) UnregisterAgent(ctx context.Context) error {
 		return err
 	}
 
-	return clearAgentKeyring()
+	return DeleteAgentCredentials()
 }
 
 // Heartbeat sends a heartbeat signal to the agent and checks if it's alive.
