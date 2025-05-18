@@ -12,8 +12,19 @@ import (
 const credentialsFile = "config/agent_credentials.json"
 
 type AgentCredentials struct {
-	AgentID    string `json:"agent_id"`
-	AgentToken string `json:"agent_token"`
+	AgentID    string `json:"id"`
+	AgentToken string `json:"token"`
+}
+
+// Save credentials to keyring
+func SaveCredentialsToKeyring(creds AgentCredentials) error {
+	if err := keyring.Set("openshield-agent", "agent_id", creds.AgentID); err != nil {
+		return err
+	}
+	if err := keyring.Set("openshield-agent", "agent_token", creds.AgentToken); err != nil {
+		return err
+	}
+	return nil
 }
 
 // Save credentials to file
@@ -25,6 +36,14 @@ func SaveCredentialsToFile(creds AgentCredentials) error {
 	}
 	defer f.Close()
 	return json.NewEncoder(f).Encode(&creds)
+}
+
+// Save credentials to both keyring and file
+func SaveAgentCredentials(creds AgentCredentials) error {
+	if err := SaveCredentialsToKeyring(creds); err != nil {
+		return err
+	}
+	return SaveCredentialsToFile(creds)
 }
 
 // Load credentials from file

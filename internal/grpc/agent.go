@@ -4,6 +4,7 @@ import (
 	"context"
 	"encoding/json"
 	"log"
+	"openshield-agent/internal/config"
 	"openshield-agent/internal/utils"
 	"openshield-agent/proto"
 	"os"
@@ -34,6 +35,27 @@ func DeleteAgentCredentials() error {
 		return err
 	}
 	return nil
+}
+
+// UnregisterAgentAsk handles the UnregisterAgentAsk RPC and deletes agent credentials.
+func (s *AgentServer) UnregisterAgentAsk(ctx context.Context, req *emptypb.Empty) (*emptypb.Empty, error) {
+	config := config.GlobalConfig
+
+	// Unregister the agent
+	client, err := NewManagerClient(config.MANAGER_ADDRESS)
+	if err != nil {
+		log.Print("[AGENT] Could not create client for manager")
+		return nil, err
+	}
+	client.UnregisterAgent(ctx)
+
+	return &emptypb.Empty{}, nil
+}
+
+func (s *AgentServer) TryAgentAddress(ctx context.Context, req *emptypb.Empty) (*emptypb.Empty, error) {
+	// This function can be used to check if the agent is reachable.
+	// For now, just return an empty response to indicate success.
+	return &emptypb.Empty{}, nil
 }
 
 // RegisterAgent registers the agent with the manager.
@@ -67,7 +89,12 @@ func (c *ManagerClient) RegisterAgent(ctx context.Context) (*proto.RegisterAgent
 }
 
 func (c *ManagerClient) UnregisterAgent(ctx context.Context) error {
-	_, err := c.client.UnregisterAgent(ctx, &emptypb.Empty{})
+	creds, err := utils.GetAgentCredentials()
+	if err != nil {
+		return err
+	}
+
+	_, err = c.client.UnregisterAgent(ctx, &proto.UnregisterAgentRequest{Id: creds.AgentID})
 	if err != nil {
 		return err
 	}

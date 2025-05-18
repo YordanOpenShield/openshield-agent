@@ -19,9 +19,6 @@ type ManagerClient struct {
 func NewManagerClient(managerAddress string) (*ManagerClient, error) {
 	config := config.GlobalConfig
 	creds, err := utils.GetAgentCredentials()
-	if err != nil {
-		return nil, err
-	}
 
 	conn, err := grpc.NewClient(
 		managerAddress+":"+config.MANAGER_GRPC_PORT,
