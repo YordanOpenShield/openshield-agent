@@ -4,9 +4,15 @@ import (
 	"fmt"
 	"net"
 	"openshield-agent/internal/osquery"
+	"runtime"
 
 	"github.com/denisbrodbeck/machineid"
 )
+
+// DetectOS returns the name of the operating system (e.g., "windows", "linux", "darwin").
+func GetDeviceOS() string {
+	return runtime.GOOS
+}
 
 // GetDeviceID retrieves the unique machine/device ID using the machineid package.
 func GetDeviceID() (string, error) {
