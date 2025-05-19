@@ -6,7 +6,7 @@ import (
 	"runtime"
 )
 
-func RunScript(scriptName string) (string, error) {
+func ExecuteScript(scriptName string) (string, error) {
 	allowed := regexp.MustCompile(`^[a-zA-Z0-9_\-]+\.(sh|ps.*)$`)
 	if !allowed.MatchString(scriptName) {
 		return "", fmt.Errorf("invalid script name")

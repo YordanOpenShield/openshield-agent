@@ -30,18 +30,29 @@ func (s *AgentServer) AssignTask(ctx context.Context, req *proto.AssignTaskReque
 
 	// Start a goroutine to execute the task and update the status
 	go func() {
-		// Run the command
-		command := models.Command{
-			Command:  strings.Split(req.Job.Command, " ")[0],
-			Args:     strings.Split(req.Job.Command, " ")[1:],
-			TargetOS: models.GetCurrentOS(),
+		var (
+			result string
+			err    error
+		)
+
+		switch strings.ToUpper(req.Job.Type) {
+		case "SCRIPT":
+			// Execute a script from the scripts directory
+			scriptPath := "scripts/" + req.Job.Target
+			result, err = executor.ExecuteScript(scriptPath)
+		case "COMMAND":
+			// Execute the command directly
+			parts := strings.Fields(req.Job.Target)
+			command := models.Command{
+				Command:  parts[0],
+				Args:     parts[1:],
+				TargetOS: models.GetCurrentOS(),
+			}
+			result, err = executor.ExecuteCommand(command)
 		}
-		result, err := executor.ExecuteCommand(command)
+
 		if err != nil {
-			log.Printf("[AGENT] Error executing command: %v", err)
-		}
-		if err != nil {
-			log.Printf("[AGENT] Command execution failed: %v", err)
+			log.Printf("[AGENT] Command/script execution failed: %v", err)
 			statusMu.Lock()
 			currentStatus = proto.TaskStatus_FAILED
 			currentResult = err.Error()
@@ -50,7 +61,7 @@ func (s *AgentServer) AssignTask(ctx context.Context, req *proto.AssignTaskReque
 			return
 		}
 
-		log.Printf("[AGENT] Command output: %s", result)
+		log.Printf("[AGENT] Command/script output: %s", result)
 
 		// Set the result and status
 		statusMu.Lock()
