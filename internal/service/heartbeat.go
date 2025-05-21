@@ -8,6 +8,7 @@ import (
 	"openshield-agent/internal/config"
 	agentgrpc "openshield-agent/internal/grpc"
 	"openshield-agent/internal/utils"
+	"strings"
 )
 
 // StartHeartbeatGRPC starts a goroutine that sends heartbeats to the manager over gRPC at the given interval.
@@ -32,57 +33,26 @@ func ManagerHeartbeatMonitor(interval time.Duration, stopCh <-chan struct{}) {
 				log.Print("[HEARTBEAT] Stopping heartbeat monitor")
 				return
 			case <-ticker.C:
-				creds, err := utils.GetAgentCredentials()
-
-				// If we can't get the credentials, we need to register the agent
-				if err != nil {
-					log.Printf("[HEARTBEAT] Failed to get agent credentials: %v. Attempting to register agent...", err)
-					ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
-					resp, err := client.RegisterAgent(ctx)
-					cancel()
-					if err != nil {
-						log.Printf("[HEARTBEAT] Agent registration failed: %v", err)
-					}
-					if err == nil {
-						credsToSave := utils.AgentCredentials{
-							AgentID:    resp.Id,
-							AgentToken: resp.Token,
-						}
-						err = utils.SaveAgentCredentials(credsToSave)
-						if err != nil {
-							log.Fatalf("[HEARTBEAT] Failed to store agent credentials after registration: %v", err)
-						}
-						creds, err = utils.GetAgentCredentials()
-						if err != nil {
-							log.Fatalf("[HEARTBEAT] Failed to get agent credentials after registration: %v", err)
-						}
-					}
-				}
-				agentID := creds.AgentID
-
 				ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
-				_, err = client.Heartbeat(ctx, agentID)
+				_, err = client.Heartbeat(ctx)
 				cancel()
 				if err != nil {
-					log.Printf("[HEARTBEAT] Heartbeat failed: %v", err)
-					ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
-					resp, err := client.RegisterAgent(ctx)
-					cancel()
-					if err != nil {
-						log.Printf("[HEARTBEAT] Agent registration failed: %v", err)
-					}
-					if err == nil {
-						credsToSave := utils.AgentCredentials{
-							AgentID:    resp.Id,
-							AgentToken: resp.Token,
-						}
-						err = utils.SaveAgentCredentials(credsToSave)
+					if strings.Contains(err.Error(), "record not found") {
+						ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
+						resp, err := client.RegisterAgent(ctx)
+						cancel()
 						if err != nil {
-							log.Fatalf("[HEARTBEAT] Failed to store agent credentials after registration: %v", err)
+							log.Printf("[HEARTBEAT] Agent registration failed: %v", err)
 						}
-						creds, err = utils.GetAgentCredentials()
-						if err != nil {
-							log.Fatalf("[HEARTBEAT] Failed to get agent credentials after registration: %v", err)
+						if err == nil {
+							credsToSave := utils.AgentCredentials{
+								AgentID:    resp.Id,
+								AgentToken: resp.Token,
+							}
+							err = utils.SaveAgentCredentials(credsToSave)
+							if err != nil {
+								log.Fatalf("[HEARTBEAT] Failed to store agent credentials after registration: %v", err)
+							}
 						}
 					}
 				} else {

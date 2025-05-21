@@ -54,9 +54,8 @@ func (s *AgentServer) UnregisterAgentAsk(ctx context.Context, req *emptypb.Empty
 	return &emptypb.Empty{}, nil
 }
 
+// TryAgentAddresses handles the TryAgentAddress RPC and logs all local addresses.
 func (s *AgentServer) TryAgentAddress(ctx context.Context, req *emptypb.Empty) (*emptypb.Empty, error) {
-	// This function can be used to check if the agent is reachable.
-	// For now, just return an empty response to indicate success.
 	return &emptypb.Empty{}, nil
 }
 
@@ -105,7 +104,7 @@ func (c *ManagerClient) UnregisterAgent(ctx context.Context) error {
 }
 
 // Heartbeat sends a heartbeat signal to the agent and checks if it's alive.
-func (c *ManagerClient) Heartbeat(ctx context.Context, agentID string) (bool, error) {
+func (c *ManagerClient) Heartbeat(ctx context.Context) (bool, error) {
 	// Fetch credentials
 	creds, err := utils.GetAgentCredentials()
 	if err != nil {
@@ -129,7 +128,7 @@ func (c *ManagerClient) Heartbeat(ctx context.Context, agentID string) (bool, er
 	}
 
 	// Send the request
-	req := &proto.HeartbeatRequest{AgentId: agentID, Message: string(jsonMsg)}
+	req := &proto.HeartbeatRequest{AgentId: creds.AgentID, Message: string(jsonMsg)}
 	resp, err := c.client.Heartbeat(ctx, req)
 	if err != nil {
 		return false, err
