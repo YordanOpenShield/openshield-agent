@@ -19,6 +19,7 @@ const scriptsDir = "scripts"
 func (s *AgentServer) GetScriptChecksums(ctx context.Context, _ *emptypb.Empty) (*proto.ChecksumResponse, error) {
 	files, err := os.ReadDir(scriptsDir)
 	if err != nil {
+		log.Printf("[SCRIPT SYNC] Failed to read scripts directory: %v", err)
 		return nil, err
 	}
 
@@ -30,6 +31,7 @@ func (s *AgentServer) GetScriptChecksums(ctx context.Context, _ *emptypb.Empty) 
 		path := filepath.Join(scriptsDir, file.Name())
 		content, err := os.ReadFile(path)
 		if err != nil {
+			log.Printf("[SCRIPT SYNC] Failed to read script file %s: %v", path, err)
 			continue
 		}
 		checksum := sha256.Sum256(content)
@@ -39,6 +41,7 @@ func (s *AgentServer) GetScriptChecksums(ctx context.Context, _ *emptypb.Empty) 
 		})
 	}
 
+	log.Printf("[SCRIPT SYNC] Returning checksums for %d scripts", len(checksums))
 	return &proto.ChecksumResponse{Scripts: checksums}, nil
 }
 
@@ -46,8 +49,10 @@ func (s *AgentServer) SendScriptFile(ctx context.Context, file *proto.FileConten
 	path := filepath.Join(scriptsDir, file.Filename)
 	err := os.WriteFile(path, file.Content, 0755)
 	if err != nil {
+		log.Printf("[SCRIPT SYNC] Failed to write script file %s: %v", path, err)
 		return &proto.SyncStatus{Success: false, Message: err.Error()}, nil
 	}
+	log.Printf("[SCRIPT SYNC] Script file updated: %s", path)
 	return &proto.SyncStatus{Success: true, Message: "File updated successfully"}, nil
 }
 
@@ -55,14 +60,14 @@ func (s *AgentServer) DeleteScriptFile(ctx context.Context, req *proto.DeleteScr
 	path := filepath.Join("scripts", filepath.Clean(req.GetFilename()))
 	err := os.Remove(path)
 	if err != nil {
-		log.Printf("Failed to delete script %s: %v", path, err)
+		log.Printf("[SCRIPT SYNC] Failed to delete script %s: %v", path, err)
 		return &proto.SyncStatus{
 			Success: false,
 			Message: err.Error(),
 		}, nil
 	}
 
-	log.Printf("Deleted script: %s", path)
+	log.Printf("[SCRIPT SYNC] Deleted script: %s", path)
 	return &proto.SyncStatus{
 		Success: true,
 		Message: "Script deleted successfully",
