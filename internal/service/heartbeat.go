@@ -41,19 +41,21 @@ func ManagerHeartbeatMonitor(interval time.Duration, stopCh <-chan struct{}) {
 					resp, err := client.RegisterAgent(ctx)
 					cancel()
 					if err != nil {
-						log.Fatalf("[HEARTBEAT] Agent registration failed: %v", err)
+						log.Printf("[HEARTBEAT] Agent registration failed: %v", err)
 					}
-					credsToSave := utils.AgentCredentials{
-						AgentID:    resp.Id,
-						AgentToken: resp.Token,
-					}
-					err = utils.SaveAgentCredentials(credsToSave)
-					if err != nil {
-						log.Fatalf("[HEARTBEAT] Failed to store agent credentials after registration: %v", err)
-					}
-					creds, err = utils.GetAgentCredentials()
-					if err != nil {
-						log.Fatalf("[HEARTBEAT] Failed to get agent credentials after registration: %v", err)
+					if err == nil {
+						credsToSave := utils.AgentCredentials{
+							AgentID:    resp.Id,
+							AgentToken: resp.Token,
+						}
+						err = utils.SaveAgentCredentials(credsToSave)
+						if err != nil {
+							log.Fatalf("[HEARTBEAT] Failed to store agent credentials after registration: %v", err)
+						}
+						creds, err = utils.GetAgentCredentials()
+						if err != nil {
+							log.Fatalf("[HEARTBEAT] Failed to get agent credentials after registration: %v", err)
+						}
 					}
 				}
 				agentID := creds.AgentID
@@ -67,19 +69,21 @@ func ManagerHeartbeatMonitor(interval time.Duration, stopCh <-chan struct{}) {
 					resp, err := client.RegisterAgent(ctx)
 					cancel()
 					if err != nil {
-						log.Fatalf("[HEARTBEAT] Agent registration failed: %v", err)
+						log.Printf("[HEARTBEAT] Agent registration failed: %v", err)
 					}
-					credsToSave := utils.AgentCredentials{
-						AgentID:    resp.Id,
-						AgentToken: resp.Token,
-					}
-					err = utils.SaveAgentCredentials(credsToSave)
-					if err != nil {
-						log.Fatalf("[HEARTBEAT] Failed to store agent credentials after registration: %v", err)
-					}
-					creds, err = utils.GetAgentCredentials()
-					if err != nil {
-						log.Fatalf("[HEARTBEAT] Failed to get agent credentials after registration: %v", err)
+					if err == nil {
+						credsToSave := utils.AgentCredentials{
+							AgentID:    resp.Id,
+							AgentToken: resp.Token,
+						}
+						err = utils.SaveAgentCredentials(credsToSave)
+						if err != nil {
+							log.Fatalf("[HEARTBEAT] Failed to store agent credentials after registration: %v", err)
+						}
+						creds, err = utils.GetAgentCredentials()
+						if err != nil {
+							log.Fatalf("[HEARTBEAT] Failed to get agent credentials after registration: %v", err)
+						}
 					}
 				} else {
 					log.Printf("[HEARTBEAT] Heartbeat sent to manager")

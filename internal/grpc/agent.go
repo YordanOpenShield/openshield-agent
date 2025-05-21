@@ -49,6 +49,8 @@ func (s *AgentServer) UnregisterAgentAsk(ctx context.Context, req *emptypb.Empty
 	}
 	client.UnregisterAgent(ctx)
 
+	log.Printf("[AGENT] Unregistering agent from manager")
+
 	return &emptypb.Empty{}, nil
 }
 
