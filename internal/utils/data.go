@@ -67,8 +67,14 @@ func GetAllServices() ([]models.Service, error) {
 		// Use 'sc query state= all' to get all services and their states
 		cmd = exec.Command("sc", "query", "state=", "all")
 	case "linux":
-		// Use 'systemctl list-units --type=service --all' to get all services
-		cmd = exec.Command("systemctl", "list-units", "--type=service", "--all", "--no-pager", "--no-legend")
+		// Try 'systemctl' first; if not available, fallback to 'service --status-all'
+		if _, err := exec.LookPath("systemctl"); err == nil {
+			cmd = exec.Command("systemctl", "list-units", "--type=service", "--all", "--no-pager", "--no-legend")
+		} else if _, err := exec.LookPath("service"); err == nil {
+			cmd = exec.Command("service", "--status-all")
+		} else {
+			return nil, fmt.Errorf("neither systemctl nor service command found on this Linux system")
+		}
 	case "darwin":
 		// Use 'launchctl list' to get all services (macOS)
 		cmd = exec.Command("launchctl", "list")
@@ -98,17 +104,39 @@ func GetAllServices() ([]models.Service, error) {
 				if len(parts) >= 3 {
 					state = parts[3]
 				}
-				if name != "" {
+	case "linux":
+		// Parse output for Linux
+		if _, err := exec.LookPath("systemctl"); err == nil {
+			lines := strings.Split(string(output), "\n")
+			for _, line := range lines {
+				fields := strings.Fields(line)
+				if len(fields) >= 4 {
+					name := fields[0]
+					state := fields[3]
 					services = append(services, models.Service{Name: name, State: state})
-					name, state = "", ""
+				}
+			}
+		} else {
+			// Fallback for 'service --status-all' output
+			lines := strings.Split(string(output), "\n")
+			for _, line := range lines {
+				line = strings.TrimSpace(line)
+				if len(line) > 0 {
+					// Example: [ + ]  serviceName
+					parts := strings.Fields(line)
+					if len(parts) >= 4 {
+						state := "Unknown"
+						if parts[1] == "+" {
+							state = "Running"
+						} else if parts[1] == "-" {
+							state = "Stopped"
+						}
+						name := parts[3]
+						services = append(services, models.Service{Name: name, State: state})
+					}
 				}
 			}
 		}
-	case "linux":
-		// Parse output for Linux
-		lines := strings.Split(string(output), "\n")
-		for _, line := range lines {
-			fields := strings.Fields(line)
 			if len(fields) >= 4 {
 				name := fields[0]
 				state := fields[3]
