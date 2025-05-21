@@ -67,14 +67,8 @@ func GetAllServices() ([]models.Service, error) {
 		// Use 'sc query state= all' to get all services and their states
 		cmd = exec.Command("sc", "query", "state=", "all")
 	case "linux":
-		// Try 'systemctl' first; if not available, fallback to 'service --status-all'
-		if _, err := exec.LookPath("systemctl"); err == nil {
-			cmd = exec.Command("systemctl", "list-units", "--type=service", "--all", "--no-pager", "--no-legend")
-		} else if _, err := exec.LookPath("service"); err == nil {
-			cmd = exec.Command("service", "--status-all")
-		} else {
-			return nil, fmt.Errorf("neither systemctl nor service command found on this Linux system")
-		}
+		// Try systemctl first
+		cmd = exec.Command("systemctl", "list-units", "--type=service", "--all", "--no-pager", "--no-legend")
 	case "darwin":
 		// Use 'launchctl list' to get all services (macOS)
 		cmd = exec.Command("launchctl", "list")
@@ -83,8 +77,13 @@ func GetAllServices() ([]models.Service, error) {
 	}
 
 	output, err := cmd.Output()
-	if err != nil {
-		return nil, fmt.Errorf("failed to list services: %w", err)
+	if err != nil && osType == "linux" {
+		// Fallback: Try 'service --status-all' if systemctl fails
+		cmd = exec.Command("service", "--status-all")
+		output, err = cmd.Output()
+		if err != nil {
+			return nil, fmt.Errorf("failed to list services with both systemctl and service: %w", err)
+		}
 	}
 
 	var services []models.Service
@@ -104,9 +103,15 @@ func GetAllServices() ([]models.Service, error) {
 				if len(parts) >= 3 {
 					state = parts[3]
 				}
+				if name != "" {
+					services = append(services, models.Service{Name: name, State: state})
+					name, state = "", ""
+				}
+			}
+		}
 	case "linux":
 		// Parse output for Linux
-		if _, err := exec.LookPath("systemctl"); err == nil {
+		if strings.Contains(cmd.String(), "systemctl") {
 			lines := strings.Split(string(output), "\n")
 			for _, line := range lines {
 				fields := strings.Fields(line)
@@ -117,30 +122,19 @@ func GetAllServices() ([]models.Service, error) {
 				}
 			}
 		} else {
-			// Fallback for 'service --status-all' output
+			// Fallback: Parse 'service --status-all' output
 			lines := strings.Split(string(output), "\n")
 			for _, line := range lines {
 				line = strings.TrimSpace(line)
 				if len(line) > 0 {
-					// Example: [ + ]  serviceName
+					// Format: [ + ]  service_name
 					parts := strings.Fields(line)
 					if len(parts) >= 4 {
-						state := "Unknown"
-						if parts[1] == "+" {
-							state = "Running"
-						} else if parts[1] == "-" {
-							state = "Stopped"
-						}
+						state := parts[1]
 						name := parts[3]
 						services = append(services, models.Service{Name: name, State: state})
 					}
 				}
-			}
-		}
-			if len(fields) >= 4 {
-				name := fields[0]
-				state := fields[3]
-				services = append(services, models.Service{Name: name, State: state})
 			}
 		}
 	case "darwin":
