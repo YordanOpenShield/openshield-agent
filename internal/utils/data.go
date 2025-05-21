@@ -3,8 +3,11 @@ package utils
 import (
 	"fmt"
 	"net"
+	"openshield-agent/internal/models"
 	"openshield-agent/internal/osquery"
+	"os/exec"
 	"runtime"
+	"strings"
 
 	"github.com/denisbrodbeck/machineid"
 )
@@ -52,4 +55,83 @@ func GetAllLocalAddresses() ([]string, error) {
 		return nil, fmt.Errorf("no non-loopback addresses found")
 	}
 	return addresses, nil
+}
+
+// GetAllServices returns a list of all services on the machine and their states.
+func GetAllServices() ([]models.Service, error) {
+	var cmd *exec.Cmd
+	osType := runtime.GOOS
+
+	switch osType {
+	case "windows":
+		// Use 'sc query state= all' to get all services and their states
+		cmd = exec.Command("sc", "query", "state=", "all")
+	case "linux":
+		// Use 'systemctl list-units --type=service --all' to get all services
+		cmd = exec.Command("systemctl", "list-units", "--type=service", "--all", "--no-pager", "--no-legend")
+	case "darwin":
+		// Use 'launchctl list' to get all services (macOS)
+		cmd = exec.Command("launchctl", "list")
+	default:
+		return nil, fmt.Errorf("unsupported OS: %s", osType)
+	}
+
+	output, err := cmd.Output()
+	if err != nil {
+		return nil, fmt.Errorf("failed to list services: %w", err)
+	}
+
+	var services []models.Service
+
+	switch osType {
+	case "windows":
+		// Parse output for Windows
+		lines := strings.Split(string(output), "\n")
+		var name, state string
+		for _, line := range lines {
+			line = strings.TrimSpace(line)
+			if strings.HasPrefix(line, "SERVICE_NAME:") {
+				name = strings.TrimSpace(strings.TrimPrefix(line, "SERVICE_NAME:"))
+			}
+			if strings.HasPrefix(line, "STATE") {
+				parts := strings.Fields(line)
+				if len(parts) >= 3 {
+					state = parts[3]
+				}
+				if name != "" {
+					services = append(services, models.Service{Name: name, State: state})
+					name, state = "", ""
+				}
+			}
+		}
+	case "linux":
+		// Parse output for Linux
+		lines := strings.Split(string(output), "\n")
+		for _, line := range lines {
+			fields := strings.Fields(line)
+			if len(fields) >= 4 {
+				name := fields[0]
+				state := fields[3]
+				services = append(services, models.Service{Name: name, State: state})
+			}
+		}
+	case "darwin":
+		// Parse output for macOS
+		lines := strings.Split(string(output), "\n")
+		for _, line := range lines {
+			fields := strings.Fields(line)
+			if len(fields) >= 3 {
+				name := fields[2]
+				state := "Unknown"
+				if fields[0] == "-" {
+					state = "Stopped"
+				} else if fields[0] == "0" {
+					state = "Running"
+				}
+				services = append(services, models.Service{Name: name, State: state})
+			}
+		}
+	}
+
+	return services, nil
 }

@@ -38,8 +38,7 @@ func (s *AgentServer) AssignTask(ctx context.Context, req *proto.AssignTaskReque
 		switch strings.ToUpper(req.Job.Type) {
 		case "SCRIPT":
 			// Execute a script from the scripts directory
-			scriptPath := "scripts/" + req.Job.Target
-			result, err = executor.ExecuteScript(scriptPath)
+			result, err = executor.ExecuteScript(req.Job.Target)
 		case "COMMAND":
 			// Execute the command directly
 			parts := strings.Fields(req.Job.Target)
@@ -60,8 +59,6 @@ func (s *AgentServer) AssignTask(ctx context.Context, req *proto.AssignTaskReque
 			log.Printf("[AGENT] Task %s failed", req.Task.Id)
 			return
 		}
-
-		log.Printf("[AGENT] Command/script output: %s", result)
 
 		// Set the result and status
 		statusMu.Lock()

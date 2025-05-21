@@ -111,11 +111,18 @@ func (c *ManagerClient) Heartbeat(ctx context.Context) (bool, error) {
 		return false, err
 	}
 
-	// Collect data
+	// Collect all addresses
 	addresses, err := utils.GetAllLocalAddresses()
 	if err != nil {
 		return false, err
 	}
+
+	// Collect all services
+	services, err := utils.GetAllServices()
+	if err != nil {
+		return false, err
+	}
+	log.Printf("[AGENT] Services: %v", services)
 
 	// Prepare a JSON message
 	msg := map[string]interface{}{

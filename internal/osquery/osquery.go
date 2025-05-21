@@ -26,3 +26,26 @@ func GetAllLocalAddresses() ([]string, error) {
 	}
 	return addresses, nil
 }
+
+func GetAllServicesStates() (map[string]string, error) {
+	services := make(map[string]string)
+
+	query := "SELECT name, state FROM services;"
+	results, err := executor.RunOSQuery(query)
+	if err != nil {
+		return nil, fmt.Errorf("failed to query services: %w", err)
+	}
+
+	for _, row := range results {
+		name, nameOk := row["name"].(string)
+		state, stateOk := row["state"].(string)
+		if nameOk && stateOk {
+			services[name] = state
+		}
+	}
+
+	if len(services) == 0 {
+		return nil, fmt.Errorf("no services found")
+	}
+	return services, nil
+}

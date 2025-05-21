@@ -12,7 +12,7 @@ func ExecuteScript(scriptName string) (string, error) {
 		return "", fmt.Errorf("invalid script name")
 	}
 
-	scriptPath := fmt.Sprintf("./scripts/%s", scriptName)
+	scriptPath := fmt.Sprintf("scripts/%s", scriptName)
 	// Detect OS and choose shell accordingly
 	if runtime.GOOS == "windows" {
 		return runCommand("powershell", "-ExecutionPolicy", "Bypass", "-File", scriptPath)
