@@ -53,6 +53,7 @@ jobs:
         uses: svenstaro/upload-release-action@v2
         with:
           repo_token: ${{ secrets.GITHUB_TOKEN }}
-          tag: ${{ github.event.release.tag_name }}
-          file: ./dist/openshield-agent-*
+          tag: ${{ github.ref }}
+          file: dist/openshield-agent-${{ matrix.goos }}-${{ matrix.goarch }}-${{ github.event.release.tag_name }}${{ matrix.ext }}
+          asset_name: openshield-agent-${{ matrix.goos }}-${{ matrix.goarch }}-${{ github.event.release.tag_name }}
           file_glob: true
