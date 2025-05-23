@@ -1,18 +1,27 @@
 package main
 
 import (
+	"flag"
 	"log"
 	"openshield-agent/internal/config"
 	agentgrpc "openshield-agent/internal/grpc"
+	"openshield-agent/internal/utils"
 	"os/exec"
 	"time"
 
 	"openshield-agent/internal/service"
 )
 
-const configFile = "config/config.yml"
+const defaultConfigFile = "config/config.yml"
 
 func main() {
+	// Parse command-line arguments
+	managerAddr := flag.String("manager", "", "Manager address (hostname or IP)")
+	flag.Parse()
+
+	// Create the config directory if it doesn't exist
+	utils.CreateConfig(defaultConfigFile, *managerAddr)
+
 	// Check if osqueryi is installed
 	_, err := exec.LookPath("osqueryi")
 	if err != nil {
@@ -20,7 +29,7 @@ func main() {
 	}
 
 	// Load the configuration file
-	err = config.LoadAndSetConfig(configFile)
+	err = config.LoadAndSetConfig(defaultConfigFile)
 	if err != nil {
 		log.Fatalf("Failed to load config: %v", err)
 	}

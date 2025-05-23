@@ -15,6 +15,15 @@ type Config struct {
 	COMMAND_TIMEOUT   string `yaml:"COMMAND_TIMEOUT"`
 }
 
+func GenerateConfig(managerAddress string) *Config {
+	return &Config{
+		MANAGER_ADDRESS:   managerAddress,
+		MANAGER_API_PORT:  "9000",
+		MANAGER_GRPC_PORT: "50052",
+		COMMAND_TIMEOUT:   "60",
+	}
+}
+
 func LoadConfig(path string) (*Config, error) {
 	data, err := os.ReadFile(path)
 	if err != nil {
