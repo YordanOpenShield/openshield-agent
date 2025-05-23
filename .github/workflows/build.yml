@@ -2,7 +2,8 @@ name: Build
 
 on:
   push:
-    branches: [main, master, 'v*.*.*']
+    branches: [main, master]
+    tags: ['v*.*.*']
   pull_request:
 
 jobs:
