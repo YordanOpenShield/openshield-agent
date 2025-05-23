@@ -9,6 +9,7 @@ jobs:
   release:
     name: Create Release
     runs-on: ubuntu-latest
+    needs: build
     steps:
       - name: Download all build artifacts
         uses: actions/download-artifact@v4
