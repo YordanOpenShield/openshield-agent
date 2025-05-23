@@ -1,3 +1,15 @@
 scripts/*
 bin/*
 config/*
+*.exe
+*.test
+*.out
+*.log
+*.tmp
+*.swp
+vendor/
+coverage.out
+.DS_Store
+.idea/
+.vscode/
+.env
