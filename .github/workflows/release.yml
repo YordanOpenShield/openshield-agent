@@ -54,5 +54,5 @@ jobs:
         with:
           repo_token: ${{ secrets.GITHUB_TOKEN }}
           tag: ${{ github.event.release.tag_name }}
-          file: ./dist/*
+          file: ./dist/openshield-agent-*
           file_glob: true
