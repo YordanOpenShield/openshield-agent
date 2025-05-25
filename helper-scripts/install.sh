@@ -1,0 +1,65 @@
+#!/usr/bin/env bash
+
+set -e
+
+AGENT_BIN="openshield-agent"
+SYSTEMD_UNIT="openshield-agent.service"
+INSTALL_DIR="/usr/local/bin"
+SYSTEMD_DIR="/etc/systemd/system"
+
+# Detect OS
+OS="$(uname | tr '[:upper:]' '[:lower:]')"
+
+echo "Detected OS: $OS"
+
+# Require VERSION argument
+if [[ -z "$1" ]]; then
+    echo "Usage: $0 <VERSION>"
+    echo "Example: $0 v1.0.1"
+    exit 1
+fi
+VERSION="$1"
+
+if [[ "$OS" == "linux" ]]; then
+    # Download agent binary if not present
+    if [[ ! -f "$AGENT_BIN" ]]; then
+        AGENT_URL="https://github.com/YordanOpenShield/openshield-agent/releases/download/${VERSION}/openshield-agent-linux-amd64-${VERSION}"
+        echo "Downloading agent binary from $AGENT_URL ..."
+        curl -L -o "$AGENT_BIN" "$AGENT_URL"
+        chmod +x "$AGENT_BIN"
+    fi
+
+    echo "Copying $AGENT_BIN to $INSTALL_DIR (requires sudo)..."
+    sudo cp "$AGENT_BIN" "$INSTALL_DIR/"
+    sudo chmod +x "$INSTALL_DIR/$AGENT_BIN"
+
+    # Copy systemd unit file
+    if [[ ! -f "$SYSTEMD_UNIT" ]]; then
+        echo "Error: $SYSTEMD_UNIT not found in current directory."
+        exit 1
+    fi
+    echo "Copying $SYSTEMD_UNIT to $SYSTEMD_DIR (requires sudo)..."
+    sudo cp "$SYSTEMD_UNIT" "$SYSTEMD_DIR/"
+    sudo systemctl daemon-reload
+    sudo systemctl enable openshield-agent
+    sudo systemctl start openshield-agent
+    echo "OpenShield Agent installed and started as a systemd service."
+
+elif [[ "$OS" == "darwin" ]]; then
+    echo "Detected macOS. Installing agent binary..."
+    if [[ ! -f "$AGENT_BIN" ]]; then
+        echo "Error: $AGENT_BIN not found in current directory."
+        exit 1
+    fi
+    cp "$AGENT_BIN" /usr/local/bin/
+    chmod +x /usr/local/bin/$AGENT_BIN
+    echo "Agent installed to /usr/local/bin."
+    echo "Note: macOS uses launchd, not systemd. Please create a launchd plist if you want to run as a service."
+
+elif [[ "$OS" == "mingw"* || "$OS" == "cygwin"* || "$OS" == "msys"* ]]; then
+    echo "Detected Windows. Please manually copy openshield-agent.exe to a directory in your PATH."
+    echo "To run as a service, use NSSM or Windows Task Scheduler."
+else
+    echo "Unsupported OS: $OS"
+    exit 1
+fi
