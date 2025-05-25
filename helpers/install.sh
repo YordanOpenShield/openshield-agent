@@ -33,11 +33,13 @@ if [[ "$OS" == "linux" ]]; then
     sudo cp "$AGENT_BIN" "$INSTALL_DIR/"
     sudo chmod +x "$INSTALL_DIR/$AGENT_BIN"
 
-    # Copy systemd unit file
+    # Download systemd unit file if not present
     if [[ ! -f "$SYSTEMD_UNIT" ]]; then
-        echo "Error: $SYSTEMD_UNIT not found in current directory."
-        exit 1
+        UNIT_URL="https://raw.githubusercontent.com/YordanOpenShield/openshield-agent/refs/heads/main/helpers/openshield-agent.service"
+        echo "Downloading systemd unit file from $UNIT_URL ..."
+        curl -L -o "$SYSTEMD_UNIT" "$UNIT_URL"
     fi
+    # Copy systemd unit file
     echo "Copying $SYSTEMD_UNIT to $SYSTEMD_DIR (requires sudo)..."
     sudo cp "$SYSTEMD_UNIT" "$SYSTEMD_DIR/"
     sudo systemctl daemon-reload
