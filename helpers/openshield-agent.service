@@ -1,0 +1,12 @@
+[Unit]
+Description=OpenShield Agent
+After=network.target
+
+[Service]
+Type=simple
+ExecStart=/usr/local/bin/openshield-agent -manager <manager-address>
+Restart=always
+User=root
+
+[Install]
+WantedBy=multi-user.target
