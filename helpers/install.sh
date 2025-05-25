@@ -14,11 +14,23 @@ echo "Detected OS: $OS"
 
 # Require VERSION argument
 if [[ -z "$1" ]]; then
-    echo "Usage: $0 <VERSION>"
+    echo "Usage: $0 <VERSION|latest>"
     echo "Example: $0 v1.0.1"
+    echo "         $0 latest"
     exit 1
 fi
 VERSION="$1"
+
+# If version is "latest", fetch the latest release tag from GitHub API
+if [[ "$VERSION" == "latest" ]]; then
+    echo "Fetching latest version from GitHub..."
+    VERSION=$(curl -s https://api.github.com/repos/YordanOpenShield/openshield-agent/releases/latest | grep -oP '"tag_name":\s*"\K(.*)(?=")')
+    if [[ -z "$VERSION" ]]; then
+        echo "Failed to fetch latest version."
+        exit 1
+    fi
+    echo "Latest version is $VERSION"
+fi
 
 if [[ "$OS" == "linux" ]]; then
     # Download agent binary if not present
@@ -50,17 +62,16 @@ if [[ "$OS" == "linux" ]]; then
 elif [[ "$OS" == "darwin" ]]; then
     echo "Detected macOS. Installing agent binary..."
     if [[ ! -f "$AGENT_BIN" ]]; then
-        echo "Error: $AGENT_BIN not found in current directory."
-        exit 1
+        AGENT_URL="https://github.com/YordanOpenShield/openshield-agent/releases/download/${VERSION}/openshield-agent-darwin-amd64-${VERSION}"
+        echo "Downloading agent binary from $AGENT_URL ..."
+        curl -L -o "$AGENT_BIN" "$AGENT_URL"
+        chmod +x "$AGENT_BIN"
     fi
     cp "$AGENT_BIN" /usr/local/bin/
     chmod +x /usr/local/bin/$AGENT_BIN
     echo "Agent installed to /usr/local/bin."
     echo "Note: macOS uses launchd, not systemd. Please create a launchd plist if you want to run as a service."
 
-elif [[ "$OS" == "mingw"* || "$OS" == "cygwin"* || "$OS" == "msys"* ]]; then
-    echo "Detected Windows. Please manually copy openshield-agent.exe to a directory in your PATH."
-    echo "To run as a service, use NSSM or Windows Task Scheduler."
 else
     echo "Unsupported OS: $OS"
     exit 1
