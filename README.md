@@ -10,13 +10,13 @@ OpenShield Agent is a cross-platform security agent designed to communicate with
 - **Script Synchronization:** Sync, update, and manage scripts from the manager.
 - **Heartbeat:** Periodically report agent status and network addresses to the manager.
 - **Credential Security:** Stores credentials securely using OS keyring with file fallback.
-- **Cross-Platform:** Works on Windows and Linux.
+- **Cross-Platform:** Works on Windows, Linux, and macOS.
 
 ---
 
 ## Prerequisites
 
-- **Go 1.20+**
+- **Go 1.20+** (for building from source)
 - **osquery** must be installed on the target machine.
 
 ### Install osquery
@@ -41,9 +41,35 @@ sudo yum install osquery
 
 ---
 
+## Installation
+
+### Automated Install Script (Linux)
+
+You can use the provided install script to automatically download the latest (or a specific) release, configure the manager address, and set up the agent as a systemd service:
+
+```sh
+curl -O https://raw.githubusercontent.com/YordanOpenShield/openshield-agent/main/helpers/install.sh
+chmod +x install.sh
+sudo ./install.sh latest <MANAGER_ADDRESS>
+```
+Replace `<MANAGER_ADDRESS>` with the address of your manager (e.g., `192.168.10.11`).
+
+- The script will:
+  - Download the latest agent binary and systemd unit file.
+  - Install the agent to `/usr/local/bin`.
+  - Configure and enable the agent as a systemd service.
+  - Start the agent automatically.
+
+**To install a specific version:**
+```sh
+sudo ./install.sh v1.0.1 <MANAGER_ADDRESS>
+```
+
+---
+
 ## Configuration
 
-Edit `config/config.yml` to set your manager address and ports:
+Edit `config/config.yml` to set your manager address and ports if needed:
 
 ```yaml
 MANAGER_ADDRESS: localhost
@@ -56,23 +82,15 @@ COMMAND_TIMEOUT: 60
 
 ## Usage
 
-1. **Build the agent:**
-   ```sh
-   go build -o openshield-agent .
-   ```
-
-2. **Run the agent:**
-   ```sh
-   ./openshield-agent
-   ```
-
-   > On Windows, run as administrator if you need to install or manage osquery.
-
-3. **Agent will:**
-   - Check for `osqueryi` in your PATH.
-   - Register with the manager and securely store credentials.
-   - Start the gRPC server and listen for tasks/scripts.
-   - Periodically send heartbeats to the manager.
+- The agent will start automatically as a systemd service after installation.
+- To check the status:
+  ```sh
+  sudo systemctl status openshield-agent
+  ```
+- To view logs:
+  ```sh
+  journalctl -u openshield-agent -f
+  ```
 
 ---
 
@@ -103,3 +121,4 @@ MIT License
 ## Links
 
 - [osquery Documentation](https://osquery.io/docs/)
+- [OpenShield Manager](https://github.com/YordanOpenShield/openshield-manager)
