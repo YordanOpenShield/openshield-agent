@@ -64,8 +64,8 @@ func GetAllServices() ([]models.Service, error) {
 
 	switch osType {
 	case "windows":
-		// Use 'sc query state= all' to get all services and their states
-		cmd = exec.Command("sc", "query", "state=", "all")
+		// Use 'Get-Service' to get all services and their states
+		cmd = exec.Command("powershell", "-Command", "Get-Service | Select-Object Status,Name")
 	case "linux":
 		// Try systemctl first
 		cmd = exec.Command("systemctl", "list-units", "--type=service", "--all", "--no-pager", "--no-legend")
@@ -92,21 +92,16 @@ func GetAllServices() ([]models.Service, error) {
 	case "windows":
 		// Parse output for Windows
 		lines := strings.Split(string(output), "\n")
-		var name, state string
-		for _, line := range lines {
-			line = strings.TrimSpace(line)
-			if strings.HasPrefix(line, "SERVICE_NAME:") {
-				name = strings.TrimSpace(strings.TrimPrefix(line, "SERVICE_NAME:"))
+		for i, line := range lines {
+			// Skip header lines (first 2 lines)
+			if i < 3 {
+				continue
 			}
-			if strings.HasPrefix(line, "STATE") {
-				parts := strings.Fields(line)
-				if len(parts) >= 3 {
-					state = parts[3]
-				}
-				if name != "" {
-					services = append(services, models.Service{Name: name, State: state})
-					name, state = "", ""
-				}
+			fields := strings.Fields(line)
+			if len(fields) >= 2 {
+				state := fields[0]
+				name := fields[1]
+				services = append(services, models.Service{Name: name, State: strings.ToUpper(state)})
 			}
 		}
 	case "linux":

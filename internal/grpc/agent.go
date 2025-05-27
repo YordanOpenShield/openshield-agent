@@ -122,12 +122,13 @@ func (c *ManagerClient) Heartbeat(ctx context.Context) (bool, error) {
 	if err != nil {
 		return false, err
 	}
-	log.Printf("[AGENT] Services: %v", services)
 
 	// Prepare a JSON message
 	msg := map[string]interface{}{
 		"id":        creds.AgentID,
 		"addresses": addresses,
+		"services":  services,
+		"os":        utils.GetDeviceOS(),
 	}
 	jsonMsg, err := json.Marshal(msg)
 	if err != nil {

@@ -12,14 +12,14 @@ OS="$(uname | tr '[:upper:]' '[:lower:]')"
 
 echo "Detected OS: $OS"
 
-# Require VERSION argument
-if [[ -z "$1" ]]; then
-    echo "Usage: $0 <VERSION|latest>"
-    echo "Example: $0 v1.0.1"
-    echo "         $0 latest"
+# Require VERSION and MANAGER arguments
+if [[ -z "$1" || -z "$2" ]]; then
+    echo "Usage: $0 <VERSION|latest> <MANAGER_ADDRESS>"
+    echo "Example: $0 latest 192.168.10.11"
     exit 1
 fi
 VERSION="$1"
+MANAGER="$2"
 
 # If version is "latest", fetch the latest release tag from GitHub API
 if [[ "$VERSION" == "latest" ]]; then
