@@ -51,6 +51,10 @@ if [[ "$OS" == "linux" ]]; then
         echo "Downloading systemd unit file from $UNIT_URL ..."
         curl -L -o "$SYSTEMD_UNIT" "$UNIT_URL"
     fi
+
+    # Replace <manager-address> in the systemd unit file with the actual manager address
+    sed -i "s|<manager-address>|$MANAGER|g" "$SYSTEMD_UNIT"
+
     # Copy systemd unit file
     echo "Copying $SYSTEMD_UNIT to $SYSTEMD_DIR (requires sudo)..."
     sudo cp "$SYSTEMD_UNIT" "$SYSTEMD_DIR/"
