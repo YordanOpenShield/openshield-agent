@@ -12,15 +12,19 @@ import (
 	"openshield-agent/internal/service"
 )
 
-const defaultConfigFile = "config/config.yml"
-
 func main() {
 	// Parse command-line arguments
 	managerAddr := flag.String("manager", "", "Manager address (hostname or IP)")
+	configPath := flag.String("config", config.ConfigPath, "Path to configuration file")
+	scriptsPath := flag.String("scripts", config.ScriptsPath, "Path to scripts directory")
 	flag.Parse()
+	config.ConfigPath = *configPath
+	config.ScriptsPath = *scriptsPath
 
 	// Create the config directory if it doesn't exist
-	utils.CreateConfig(defaultConfigFile, *managerAddr)
+	utils.CreateConfig(config.ConfigPath, *managerAddr)
+	// Create the scripts directory if it doesn't exist
+	utils.CreateScriptsDir(config.ScriptsPath)
 
 	// Check if osqueryi is installed
 	_, err := exec.LookPath("osqueryi")
@@ -29,7 +33,7 @@ func main() {
 	}
 
 	// Load the configuration file
-	err = config.LoadAndSetConfig(defaultConfigFile)
+	err = config.LoadAndSetConfig(config.ConfigPath)
 	if err != nil {
 		log.Fatalf("Failed to load config: %v", err)
 	}

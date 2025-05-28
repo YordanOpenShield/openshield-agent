@@ -7,7 +7,6 @@ import (
 
 	"openshield-agent/internal/config"
 	agentgrpc "openshield-agent/internal/grpc"
-	"openshield-agent/internal/utils"
 	"strings"
 )
 
@@ -38,21 +37,12 @@ func ManagerHeartbeatMonitor(interval time.Duration, stopCh <-chan struct{}) {
 				cancel()
 				if err != nil {
 					if strings.Contains(err.Error(), "record not found") {
+						log.Printf("[HEARTBEAT] Registering agent")
 						ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
-						resp, err := client.RegisterAgent(ctx)
+						_, err := client.RegisterAgent(ctx)
 						cancel()
 						if err != nil {
 							log.Printf("[HEARTBEAT] Agent registration failed: %v", err)
-						}
-						if err == nil {
-							credsToSave := utils.AgentCredentials{
-								AgentID:    resp.Id,
-								AgentToken: resp.Token,
-							}
-							err = utils.SaveAgentCredentials(credsToSave)
-							if err != nil {
-								log.Fatalf("[HEARTBEAT] Failed to store agent credentials after registration: %v", err)
-							}
 						}
 					}
 					log.Printf("[HEARTBEAT] Heartbeat failed: %v", err)

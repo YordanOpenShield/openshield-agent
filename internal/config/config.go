@@ -3,8 +3,24 @@ package config
 import (
 	"os"
 
+	"runtime"
+
 	"gopkg.in/yaml.v2"
 )
+
+var ConfigPath string = "config/config.yml"
+var ScriptsPath string = "scripts"
+
+func init() {
+	switch runtime.GOOS {
+	case "windows":
+		ConfigPath = "C:\\ProgramData\\openshield\\config.yml"
+		ScriptsPath = "C:\\ProgramData\\openshield\\scripts"
+	default:
+		ConfigPath = "/etc/openshield/config.yml"
+		ScriptsPath = "/etc/openshield/scripts"
+	}
+}
 
 var GlobalConfig Config
 
@@ -24,8 +40,9 @@ func GenerateConfig(managerAddress string) *Config {
 	}
 }
 
-func LoadConfig(path string) (*Config, error) {
-	data, err := os.ReadFile(path)
+func LoadConfig(configPath string) (*Config, error) {
+	configFile := configPath + string(os.PathSeparator) + "config.yml"
+	data, err := os.ReadFile(configFile)
 	if err != nil {
 		return nil, err
 	}

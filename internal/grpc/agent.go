@@ -73,17 +73,10 @@ func (c *ManagerClient) RegisterAgent(ctx context.Context) (*proto.RegisterAgent
 		return nil, err
 	}
 
-	// Store credentials in OS keyring
-	if err := keyring.Set("openshield-agent", "agent_id", resp.Id); err != nil {
-		log.Printf("[AGENT] Failed to store agent_id in keyring: %v", err)
-	}
-	if err := keyring.Set("openshield-agent", "agent_token", resp.Token); err != nil {
-		log.Printf("[AGENT] Failed to store agent_token in keyring: %v", err)
-	}
-	// Always save to file as fallback
+	// Save agent credentials
 	creds := utils.AgentCredentials{AgentID: resp.Id, AgentToken: resp.Token}
-	if err := utils.SaveCredentialsToFile(creds); err != nil {
-		log.Printf("[AGENT] Failed to save credentials to file: %v", err)
+	if err := utils.SaveAgentCredentials(creds); err != nil {
+		return nil, err
 	}
 
 	return resp, nil

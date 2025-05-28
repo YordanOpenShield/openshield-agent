@@ -2,14 +2,14 @@ package utils
 
 import (
 	"encoding/json"
+	"openshield-agent/internal/config"
 	"os"
 	"path/filepath"
 
 	"github.com/zalando/go-keyring"
 )
 
-// Path to fallback credentials file
-const credentialsFile = "config/agent_credentials.json"
+const credentialsFilename = "agent_credentials.json"
 
 type AgentCredentials struct {
 	AgentID    string `json:"id"`
@@ -29,6 +29,7 @@ func SaveCredentialsToKeyring(creds AgentCredentials) error {
 
 // Save credentials to file
 func SaveCredentialsToFile(creds AgentCredentials) error {
+	var credentialsFile = config.ConfigPath + "/" + credentialsFilename
 	_ = os.MkdirAll(filepath.Dir(credentialsFile), 0700)
 	f, err := os.OpenFile(credentialsFile, os.O_CREATE|os.O_WRONLY|os.O_TRUNC, 0600)
 	if err != nil {
@@ -41,13 +42,14 @@ func SaveCredentialsToFile(creds AgentCredentials) error {
 // Save credentials to both keyring and file
 func SaveAgentCredentials(creds AgentCredentials) error {
 	if err := SaveCredentialsToKeyring(creds); err != nil {
-		return err
+		return SaveCredentialsToFile(creds)
 	}
 	return SaveCredentialsToFile(creds)
 }
 
 // Load credentials from file
 func loadCredentialsFromFile() (AgentCredentials, error) {
+	var credentialsFile = config.ConfigPath + "/" + credentialsFilename
 	var creds AgentCredentials
 	f, err := os.Open(credentialsFile)
 	if err != nil {

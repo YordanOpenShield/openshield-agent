@@ -9,9 +9,10 @@ import (
 	"gopkg.in/yaml.v2"
 )
 
-func CreateConfig(configFile string, managerAddress string) {
+func CreateConfig(configDir string, managerAddress string) {
+	configFile := filepath.Join(configDir, "config.yml")
+
 	// Check if the config directory exists, if not, create it
-	configDir := filepath.Dir(configFile)
 	if _, err := os.Stat(configDir); os.IsNotExist(err) {
 		err := os.MkdirAll(configDir, 0755)
 		if err != nil {
@@ -27,7 +28,6 @@ func CreateConfig(configFile string, managerAddress string) {
 		}
 
 		defaultConfig := config.GenerateConfig(managerAddress)
-		// Marshal the config to YAML (or JSON if preferred)
 		yamlBytes, err := yaml.Marshal(defaultConfig)
 		if err != nil {
 			log.Fatalf("Failed to marshal default config: %v", err)
@@ -37,5 +37,15 @@ func CreateConfig(configFile string, managerAddress string) {
 			log.Fatalf("Failed to create default config.yml: %v", err)
 		}
 		log.Printf("Created default config at %s", configFile)
+	}
+}
+
+func CreateScriptsDir(scriptsDir string) {
+	if _, err := os.Stat(scriptsDir); os.IsNotExist(err) {
+		err := os.MkdirAll(scriptsDir, 0755)
+		if err != nil {
+			log.Fatalf("Failed to create scripts directory: %v", err)
+		}
+		log.Printf("Created scripts directory at %s", scriptsDir)
 	}
 }
