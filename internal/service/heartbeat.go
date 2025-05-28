@@ -55,6 +55,7 @@ func ManagerHeartbeatMonitor(interval time.Duration, stopCh <-chan struct{}) {
 							}
 						}
 					}
+					log.Printf("[HEARTBEAT] Heartbeat failed: %v", err)
 				} else {
 					log.Printf("[HEARTBEAT] Heartbeat sent to manager")
 				}
