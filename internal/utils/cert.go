@@ -10,6 +10,7 @@ import (
 	"encoding/json"
 	"encoding/pem"
 	"fmt"
+	"io"
 	"log"
 	"net/http"
 	"openshield-agent/internal/config"
@@ -90,7 +91,24 @@ func RequestCSRSigning(csr []byte) (*CertResponse, error) {
 		return nil, err
 	}
 	req.Header.Set("X-Agent-Token", creds.AgentToken)
-	req.Header.Set("Content-Type", "application/octet-stream")
+	req.Header.Set("Content-Type", "application/json")
+
+	// Get all local addresses
+	addrs, err := GetAllLocalAddresses()
+	if err != nil {
+		return nil, err
+	}
+	// Marshal body to JSON
+	bodyMap := map[string]interface{}{
+		"sanHosts": addrs,
+		"csr":      string(csr),
+	}
+	bodyBytes, err := json.Marshal(bodyMap)
+	if err != nil {
+		return nil, err
+	}
+	req.Body = io.NopCloser(bytes.NewReader(bodyBytes))
+	req.ContentLength = int64(len(bodyBytes))
 
 	client := &http.Client{}
 	resp, err := client.Do(req)
