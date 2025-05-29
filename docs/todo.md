@@ -6,10 +6,11 @@ A checklist of tasks and improvements for the OpenShield Agent project.
 
 ## 🚀 Features
 
-- [ ] Secure mTLS communication between Manager and Agent
+- [x] Secure mTLS communication between Manager and Agent
 - [ ] Add support for new data sources
 - [ ] Enhance logging and error reporting
 - [ ] Integrate with OpenShield dashboard
+- [ ] Implement proper logging
 
 ## 🛠️ Bug Fixes
 
