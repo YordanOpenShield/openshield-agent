@@ -28,18 +28,20 @@ func init() {
 var GlobalConfig Config
 
 type Config struct {
-	MANAGER_ADDRESS   string `yaml:"MANAGER_ADDRESS"`
-	MANAGER_API_PORT  string `yaml:"MANAGER_API_PORT"`
-	MANAGER_GRPC_PORT string `yaml:"MANAGER_GRPC_PORT"`
-	COMMAND_TIMEOUT   string `yaml:"COMMAND_TIMEOUT"`
+	MANAGER_ADDRESS       string `yaml:"MANAGER_ADDRESS"`
+	MANAGER_API_PORT      string `yaml:"MANAGER_API_PORT"`
+	MANAGER_GRPC_PORT     string `yaml:"MANAGER_GRPC_PORT"`
+	MANAGER_REGISTER_PORT string `yaml:"MANAGER_REGISTER_PORT"`
+	COMMAND_TIMEOUT       string `yaml:"COMMAND_TIMEOUT"`
 }
 
 func GenerateConfig(managerAddress string) *Config {
 	return &Config{
-		MANAGER_ADDRESS:   managerAddress,
-		MANAGER_API_PORT:  "9000",
-		MANAGER_GRPC_PORT: "50052",
-		COMMAND_TIMEOUT:   "60",
+		MANAGER_ADDRESS:       managerAddress,
+		MANAGER_API_PORT:      "9000",
+		MANAGER_GRPC_PORT:     "50052",
+		MANAGER_REGISTER_PORT: "50053",
+		COMMAND_TIMEOUT:       "60",
 	}
 }
 

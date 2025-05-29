@@ -9,6 +9,7 @@ This document describes the step-by-step process for enrolling an OpenShield Age
 - Agent binary is installed on the target machine.
 - Manager address and ports are known.
 - `osquery` is installed and available in PATH. (optional)
+- The agent must have access to generate and store certificates in the `certs` directory.
 
 ---
 
@@ -46,24 +47,36 @@ This document describes the step-by-step process for enrolling an OpenShield Age
   - In OS keyring (preferred)
   - As a fallback, in a local file with restricted permissions
 
-### Step 5: Confirm Enrollment (Agent)
+### Step 5: Generate Private Key and CSR (Agent)
 
-- Agent logs successful enrollment.
-- Agent is now ready to receive tasks and send heartbeats.
+- The agent checks for an existing private key (`certs/agent.key`) and CSR (`certs/agent.csr`).
+- If not found, it generates a new RSA private key and a Certificate Signing Request (CSR) with the agent's identity.
+- The private key and CSR are saved in the `certs` directory.
+
+### Step 6: Request Certificate Signing (Agent)
+
+- The agent sends the CSR to the manager's certificate signing endpoint, authenticated with the agent token.
+- The manager responds with a signed agent certificate and the CA certificate (in JSON format).
+- The agent saves the signed certificate (`certs/agent.crt`) and CA certificate (`certs/ca.crt`) in the `certs` directory.
+
+### Step 7: Confirm Enrollment (Agent)
+
+- Agent logs successful enrollment and certificate setup.
+- Agent is now ready to receive tasks, send heartbeats, and communicate securely with the manager.
 
 ---
 
 ## 3. Error Handling
 
-- If registration fails, the agent retries after a delay.
-- If credentials cannot be stored, the agent logs an error and exits.
+- If registration or certificate signing fails, the agent retries after a delay.
+- If credentials or certificates cannot be stored, the agent logs an error and exits.
 
 ---
 
 ## 4. Re-enrollment
 
-- To re-enroll, clear credentials using the provided utility or manually remove keyring entries and credential files.
-- Restart the agent to trigger a new enrollment.
+- To re-enroll, clear credentials and certificates using the provided utility or manually remove keyring entries, credential files, and certificates.
+- Restart the agent to trigger a new enrollment and certificate request.
 
 ---
 
@@ -77,6 +90,10 @@ sequenceDiagram
     Agent->>Manager: RegisterAgent(device_id)
     Manager-->>Agent: RegisterAgentResponse(agent_id, token)
     Agent->>Agent: Store credentials
+    Agent->>Agent: Generate key and CSR (if needed)
+    Agent->>Manager: SignCSR(CSR, token)
+    Manager-->>Agent: Signed certificate + CA (JSON)
+    Agent->>Agent: Store certificates
     Agent->>Manager: Heartbeat (authenticated)
 ```
 

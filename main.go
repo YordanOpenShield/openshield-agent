@@ -7,6 +7,7 @@ import (
 	agentgrpc "openshield-agent/internal/grpc"
 	"openshield-agent/internal/utils"
 	"os/exec"
+	"strings"
 	"time"
 
 	"openshield-agent/internal/service"
@@ -40,6 +41,16 @@ func main() {
 	err = config.LoadAndSetConfig(config.ConfigPath)
 	if err != nil {
 		log.Fatalf("Failed to load config: %v", err)
+	}
+
+	// Enroll agent
+	err = service.EnrollAgent()
+	if err != nil {
+		if strings.Contains(err.Error(), "duplicate key") {
+			log.Printf("Agent is already enrolled: %v", err)
+		} else {
+			log.Fatalf("Failed to enroll agent: %v", err)
+		}
 	}
 
 	// Start background tasks

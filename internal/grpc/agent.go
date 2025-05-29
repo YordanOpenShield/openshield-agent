@@ -79,7 +79,36 @@ func (c *ManagerClient) RegisterAgent(ctx context.Context) (*proto.RegisterAgent
 		return nil, err
 	}
 
+	// Generate private key and CSR (Certificate Signing Request) for the agent
+	err = utils.GeneratePrivateKey()
+	if err != nil {
+		log.Printf("[AGENT] Failed to generate private key: %v", err)
+		return nil, err
+	}
+	err = utils.GenerateCSR(resp.Id)
+	if err != nil {
+		log.Printf("[AGENT] Failed to generate CSR: %v", err)
+		return nil, err
+	}
+
+	// Read the agent.csr file from the certs directory
+	csrPath := filepath.Join(config.CertsPath, "agent.csr")
+	csrData, err := os.ReadFile(csrPath)
+	if err != nil {
+		return nil, err
+	}
 	// Request certificate from the manager
+	certsResp, err := utils.RequestCSRSigning([]byte(csrData))
+	if err != nil {
+		log.Printf("[AGENT] Failed to request certificate signing: %v", err)
+		return nil, err
+	}
+	// Save the signed certificate and CA certificate
+	err = utils.SaveCertificates(certsResp)
+	if err != nil {
+		log.Printf("[AGENT] Failed to save certificates: %v", err)
+		return nil, err
+	}
 
 	return resp, nil
 }

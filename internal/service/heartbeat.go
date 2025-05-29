@@ -20,7 +20,7 @@ func ManagerHeartbeatMonitor(interval time.Duration, stopCh <-chan struct{}) {
 		client, err := agentgrpc.NewManagerClient(config.MANAGER_ADDRESS)
 		if err != nil {
 			log.Printf("[HEARTBEAT SYNC] Could not create client for manager: %v", err)
-			return
+			EnrollAgent()
 		}
 
 		ticker := time.NewTicker(interval)
