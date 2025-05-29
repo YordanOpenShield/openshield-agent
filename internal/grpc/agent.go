@@ -79,6 +79,8 @@ func (c *ManagerClient) RegisterAgent(ctx context.Context) (*proto.RegisterAgent
 		return nil, err
 	}
 
+	// Request certificate from the manager
+
 	return resp, nil
 }
 

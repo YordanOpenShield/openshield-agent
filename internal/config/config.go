@@ -8,17 +8,20 @@ import (
 	"gopkg.in/yaml.v2"
 )
 
-var ConfigPath string = "config/config.yml"
+var ConfigPath string = "config"
 var ScriptsPath string = "scripts"
+var CertsPath string = "certs"
 
 func init() {
 	switch runtime.GOOS {
 	case "windows":
 		ConfigPath = "C:\\ProgramData\\openshield\\config.yml"
 		ScriptsPath = "C:\\ProgramData\\openshield\\scripts"
+		CertsPath = "C:\\ProgramData\\openshield\\certs"
 	default:
 		ConfigPath = "/etc/openshield/config.yml"
 		ScriptsPath = "/etc/openshield/scripts"
+		CertsPath = "/etc/openshield/certs"
 	}
 }
 

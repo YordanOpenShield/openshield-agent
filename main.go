@@ -17,14 +17,18 @@ func main() {
 	managerAddr := flag.String("manager", "", "Manager address (hostname or IP)")
 	configPath := flag.String("config", config.ConfigPath, "Path to configuration file")
 	scriptsPath := flag.String("scripts", config.ScriptsPath, "Path to scripts directory")
+	certsPath := flag.String("certs", config.CertsPath, "Path to certificates directory")
 	flag.Parse()
 	config.ConfigPath = *configPath
 	config.ScriptsPath = *scriptsPath
+	config.CertsPath = *certsPath
 
 	// Create the config directory if it doesn't exist
 	utils.CreateConfig(config.ConfigPath, *managerAddr)
 	// Create the scripts directory if it doesn't exist
 	utils.CreateScriptsDir(config.ScriptsPath)
+	// Create the certs directory if it doesn't exist
+	utils.CreateCertsDir(config.CertsPath)
 
 	// Check if osqueryi is installed
 	_, err := exec.LookPath("osqueryi")

@@ -2,10 +2,22 @@
 
 set -e
 
+OPENSHIELD_DIR="/etc/openshield"
+CERT_DIR="$OPENSHIELD_DIR/certs"
 AGENT_BIN="openshield-agent"
 SYSTEMD_UNIT="openshield-agent.service"
 INSTALL_DIR="/usr/local/bin"
 SYSTEMD_DIR="/etc/systemd/system"
+
+# Create necessary directories if they don't exist
+mkdir -p "$OPENSHIELD_DIR"
+mkdir -p "$CERT_DIR"
+
+# Generate agent key and CSR
+echo "Generating agent key and CSR in $CERT_DIR"
+openssl genrsa -out "$AGENT_CERT_DIR/agent.key" 4096
+openssl req -new -key "$AGENT_CERT_DIR/agent.key" -out "$AGENT_CERT_DIR/agent.csr" -subj "/CN=$(hostname)"
+echo "Agent key and CSR generated in $CERT_DIR"
 
 # Detect OS
 OS="$(uname | tr '[:upper:]' '[:lower:]')"

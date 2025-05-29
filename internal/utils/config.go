@@ -49,3 +49,13 @@ func CreateScriptsDir(scriptsDir string) {
 		log.Printf("Created scripts directory at %s", scriptsDir)
 	}
 }
+
+func CreateCertsDir(certsDir string) {
+	if _, err := os.Stat(certsDir); os.IsNotExist(err) {
+		err := os.MkdirAll(certsDir, 0755)
+		if err != nil {
+			log.Fatalf("Failed to create certs directory: %v", err)
+		}
+		log.Printf("Created scripts directory at %s", certsDir)
+	}
+}
