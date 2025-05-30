@@ -38,7 +38,7 @@ func (s *AgentServer) AssignTask(ctx context.Context, req *proto.AssignTaskReque
 		switch strings.ToUpper(req.Job.Type) {
 		case "SCRIPT":
 			// Execute a script from the scripts directory
-			result, err = executor.ExecuteScript(req.Job.Target)
+			result, err = executor.ExecuteScript(req.Job.Target, []string{})
 		case "COMMAND":
 			// Execute the command directly
 			parts := strings.Fields(req.Job.Target)
