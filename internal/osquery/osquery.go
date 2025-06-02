@@ -9,14 +9,14 @@ import (
 func GetAllLocalAddresses() ([]string, error) {
 	var addresses []string
 
-	query := "SELECT address FROM interface_addresses WHERE address NOT LIKE '127.%' AND address NOT LIKE '169.254.%' AND address LIKE '%.%';"
+	query := "SELECT address, interface FROM interface_addresses WHERE address NOT LIKE '127.%' AND address NOT LIKE '169.254.%' AND address LIKE '%.%';"
 	results, err := executor.RunOSQuery(query)
 	if err == nil && len(results) > 0 {
 		for _, row := range results {
-			if addr, ok := row["address"]; ok {
-				if addrStr, ok := addr.(string); ok && addrStr != "" {
-					addresses = append(addresses, addrStr)
-				}
+			iface, ifaceOk := row["interface"].(string)
+			addr, addrOk := row["address"].(string)
+			if ifaceOk && addrOk && addr != "" && iface != "lo" && iface != "Loopback Pseudo-Interface 1" {
+				addresses = append(addresses, addr)
 			}
 		}
 	}

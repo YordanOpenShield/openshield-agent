@@ -2,6 +2,7 @@ package utils
 
 import (
 	"fmt"
+	"log"
 	"net"
 	"openshield-agent/internal/models"
 	"openshield-agent/internal/osquery"
@@ -35,18 +36,29 @@ func GetAllLocalAddresses() ([]string, error) {
 
 	// If osquery fails or returns no addresses, fallback to net.InterfaceAddrs
 	if len(addresses) == 0 || err != nil {
-		addrs, err := net.InterfaceAddrs()
+		ifaces, err := net.Interfaces()
 		if err != nil {
 			return nil, fmt.Errorf("failed to get network interfaces: %w", err)
 		}
-		for _, addr := range addrs {
-			if ipnet, ok := addr.(*net.IPNet); ok && !ipnet.IP.IsLoopback() && ipnet.IP.To4() != nil {
-				ip := ipnet.IP.To4()
-				// Skip APIPA addresses (169.254.x.x)
-				if ip[0] == 169 && ip[1] == 254 {
-					continue
+		for _, iface := range ifaces {
+			// Skip loopback interfaces
+			if iface.Flags&net.FlagLoopback != 0 {
+				continue
+			}
+			addrs, err := iface.Addrs()
+			if err != nil {
+				log.Printf("failed to get addresses for interface %s: %v", iface.Name, err)
+				continue
+			}
+			for _, addr := range addrs {
+				if ipnet, ok := addr.(*net.IPNet); ok && ipnet.IP.To4() != nil {
+					ip := ipnet.IP.To4()
+					// Skip APIPA addresses (169.254.x.x)
+					if ip[0] == 169 && ip[1] == 254 {
+						continue
+					}
+					addresses = append(addresses, ip.String())
 				}
-				addresses = append(addresses, ip.String())
 			}
 		}
 	}

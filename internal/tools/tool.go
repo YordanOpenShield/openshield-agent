@@ -1,15 +1,51 @@
 package tools
 
 import (
+	"bufio"
+	"bytes"
 	"fmt"
 	"openshield-agent/internal/executor"
 	"openshield-agent/internal/models"
 	"openshield-agent/internal/utils"
+	"strings"
 )
+
+var toolRegistry = map[string]Tool{}
+
+// func loadToolsConfig(path string) ([]Tool, error) {
+// 	data, err := os.ReadFile(path + string(os.PathSeparator) + "tools.yml")
+// 	if err != nil {
+// 		return nil, err
+// 	}
+// 	var cfg ToolsConfig
+// 	if err := yaml.Unmarshal(data, &cfg); err != nil {
+// 		return nil, err
+// 	}
+// 	return cfg.Tools, nil
+// }
+
+func RegisterTool(t Tool) {
+	toolRegistry[t.Name] = t
+}
+
+// func RegisterToolsFromConfig() error {
+// 	tools, err := loadToolsConfig(config.ConfigPath)
+// 	if err != nil {
+// 		return err
+// 	}
+// 	for _, t := range tools {
+// 		RegisterTool(t)
+// 	}
+// 	return nil
+// }
+
+func GetTool(name string) (Tool, bool) {
+	t, ok := toolRegistry[name]
+	return t, ok
+}
 
 type Tool struct {
 	Name    string   `yaml:"name"`
-	Script  string   `yaml:"script"`
 	Actions []Action `yaml:"actions"`
 	OS      []string `yaml:"os"`
 }
@@ -17,6 +53,10 @@ type Tool struct {
 type Action struct {
 	Name string   `yaml:"name"`
 	Opts []string `yaml:"opts"`
+}
+
+type ToolsConfig struct {
+	Tools []Tool `yaml:"tools"`
 }
 
 // isActionSupported checks if the given action is supported by the tool.
@@ -37,6 +77,18 @@ func (t *Tool) isOSSupported(os string) bool {
 		}
 	}
 	return false
+}
+
+// Helper to parse ID from /etc/os-release
+func parseOSReleaseID(data []byte) string {
+	scanner := bufio.NewScanner(bytes.NewReader(data))
+	for scanner.Scan() {
+		line := scanner.Text()
+		if strings.HasPrefix(line, "ID=") {
+			return strings.Trim(strings.TrimPrefix(line, "ID="), "\"")
+		}
+	}
+	return ""
 }
 
 func (t *Tool) RunAction(action string, args []string) (string, error) {

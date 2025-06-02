@@ -38,6 +38,32 @@ func CreateConfig(configDir string, managerAddress string) {
 		}
 		log.Printf("Created default config at %s", configFile)
 	}
+
+	// If the config file exists, update the manager address if needed
+	if _, err := os.Stat(configFile); err == nil && managerAddress != "" {
+		fileBytes, err := os.ReadFile(configFile)
+		if err != nil {
+			log.Fatalf("Failed to read config file: %v", err)
+		}
+
+		var cfg config.Config
+		if err := yaml.Unmarshal(fileBytes, &cfg); err != nil {
+			log.Fatalf("Failed to unmarshal config file: %v", err)
+		}
+
+		if cfg.MANAGER_ADDRESS != managerAddress {
+			cfg.MANAGER_ADDRESS = managerAddress
+			yamlBytes, err := yaml.Marshal(cfg)
+			if err != nil {
+				log.Fatalf("Failed to marshal updated config: %v", err)
+			}
+			err = os.WriteFile(configFile, yamlBytes, 0644)
+			if err != nil {
+				log.Fatalf("Failed to update config.yml: %v", err)
+			}
+			log.Printf("Updated manager address in config at %s", configFile)
+		}
+	}
 }
 
 func CreateScriptsDir(scriptsDir string) {
