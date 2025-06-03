@@ -2,10 +2,14 @@ package agentgrpc
 
 import (
 	"context"
+	"encoding/base64"
+	"fmt"
 	"log"
+	"openshield-agent/internal/models"
 	"openshield-agent/internal/tools"
 	"openshield-agent/proto"
 	"sync"
+	"time"
 
 	"google.golang.org/protobuf/types/known/emptypb"
 )
@@ -47,48 +51,73 @@ func (s *AgentServer) ExecuteTool(ctx context.Context, req *proto.ExecuteToolReq
 	// TODO: Implement logic to execute the requested tool with given action and options
 	log.Printf("[AGENT] Received tool execution: %s (%s) [%v]", req.Name, req.Action, req.Options)
 
-	// toolActionStatusMu.Lock()
-	// toolActionStatus = proto.TaskStatus_RUNNING
-	// toolActionStatusMu.Unlock()
+	// Check if another action is currently executing
+	toolActionStatusMu.Lock()
+	if toolActionStatus == proto.TaskStatus_RUNNING {
+		toolActionStatusMu.Unlock()
+		return nil, fmt.Errorf("another tool action is currently executing")
+	}
+	toolActionStatusMu.Unlock()
 
-	// tool, exists := tools.GetTool(req.Name)
-	// if !exists {
-	// 	return nil, fmt.Errorf("tool %s not found", req.Name)
-	// }
+	// Set the status to running
+	toolActionStatusMu.Lock()
+	toolActionStatus = proto.TaskStatus_RUNNING
+	toolActionStatusMu.Unlock()
 
-	// go func() {
-	// 	var (
-	// 		result string
-	// 		err    error
-	// 	)
+	// Check if the tool exists
+	tool, exists := tools.GetTool(req.Name)
+	if !exists {
+		return nil, fmt.Errorf("tool %s not found", req.Name)
+	}
+	// Check if the action is supported
+	if !tool.isActionSupported(req.Action) {
+		return nil, fmt.Errorf("action %s not supported by tool %s", req.Action, req.Name)
+	}
+	// Check if the OS is supported
+	if !tool.isOSSupported(models.GetCurrentOS()) {
+		return nil, fmt.Errorf("tool %s is not supported on this OS", req.Name)
+	}
 
-	// 	// Execute the command directly
-	// 	parts := strings.Fields(req.Job.Target)
-	// 	command := models.Command{
-	// 		Command:  parts[0],
-	// 		Args:     parts[1:],
-	// 		TargetOS: models.GetCurrentOS(),
-	// 	}
-	// 	result, err = executor.ExecuteCommand(command)
+	go func() {
+		var (
+			result string
+			err    error
+		)
 
-	// 	if err != nil {
-	// 		log.Printf("[AGENT] Command/script execution failed: %v", err)
-	// 		statusMu.Lock()
-	// 		currentStatus = proto.TaskStatus_FAILED
-	// 		currentResult = err.Error()
-	// 		statusMu.Unlock()
-	// 		log.Printf("[AGENT] Task %s failed", req.Task.Id)
-	// 		return
-	// 	}
+		// Execute the action
+		output, err := tool.ExecAction(req.Action, req.Options)
+		if err != nil {
+			log.Printf("[TOOL] Tool action execution failed: %v", err)
+			toolActionStatusMu.Lock()
+			toolActionStatus = proto.TaskStatus_FAILED
+			toolActionResult = err.Error()
+			toolActionStatusMu.Unlock()
+			log.Printf("[AGENT] Tool %s action %s failed", req.Name, req.Action)
+			return
+		}
 
-	// 	// Set the result and status
-	// 	statusMu.Lock()
-	// 	currentStatus = proto.TaskStatus_COMPLETED
-	// 	currentResult = result
-	// 	statusMu.Unlock()
+		// Set the result and status
+		toolActionStatusMu.Lock()
+		toolActionStatus = proto.TaskStatus_COMPLETED
+		toolActionResult = result
+		toolActionStatusMu.Unlock()
 
-	// 	log.Printf("[AGENT] Task %s completed", req.Task.Id)
-	// }()
+		log.Printf("[AGENT] Tool %s action %s completed", req.Name, req.Action)
+	}()
+
+	// Start a goroutine to report task status every second
+	go func() {
+		for {
+			toolActionStatusMu.Lock()
+			if toolActionStatus == proto.TaskStatus_COMPLETED || toolActionStatus == proto.TaskStatus_FAILED {
+				toolActionStatusMu.Unlock()
+				break
+			}
+			log.Printf("[AGENT] Tool %s action %s status: %v", req.Name, req.Action, toolActionStatus)
+			toolActionStatusMu.Unlock()
+			time.Sleep(5 * time.Second)
+		}
+	}()
 
 	return &proto.ExecuteToolResponse{
 		Name:     req.Name,
@@ -101,10 +130,18 @@ func (s *AgentServer) ExecuteTool(ctx context.Context, req *proto.ExecuteToolReq
 // ReportToolExecutionStatus handles the ReportToolExecutionStatus RPC.
 func (s *AgentServer) ReportToolExecutionStatus(ctx context.Context, req *proto.ToolExecutionStatusRequest) (*proto.ToolExecutionStatusResponse, error) {
 	// TODO: Implement logic to report the status of a tool execution
+	toolActionStatusMu.Lock()
+	defer toolActionStatusMu.Unlock()
+
+	log.Printf("[AGENT] Reporting status for tool %s action %s", req.Name, req.Action)
+
+	// Encode the result to base64 to ensure safe transmission
+	encodedResult := base64.StdEncoding.EncodeToString([]byte(toolActionResult))
+
 	return &proto.ToolExecutionStatusResponse{
 		Name:   req.Name,
 		Action: req.Action,
-		Status: proto.TaskStatus_COMPLETED,
-		Result: "Execution result here",
+		Status: toolActionStatus,
+		Result: encodedResult,
 	}, nil
 }

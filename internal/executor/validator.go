@@ -25,3 +25,14 @@ func IsCommandWhitelisted(cmd models.Command) bool {
 	}
 	return false
 }
+
+// IsValidForCurrentOS checks if the command is valid for the current OS.
+func IsValidForCurrentOS(cmd models.Command) bool {
+	// Check if the command is whitelisted for the current OS
+	for _, allowed := range CommandWhitelist {
+		if cmd.Command == allowed.Command && cmd.TargetOS == allowed.TargetOS {
+			return true
+		}
+	}
+	return false
+}

@@ -10,6 +10,7 @@ import (
 
 	"openshield-agent/internal/executor"
 	"openshield-agent/internal/models"
+	"openshield-agent/internal/utils"
 	"openshield-agent/proto"
 )
 
@@ -45,7 +46,7 @@ func (s *AgentServer) AssignTask(ctx context.Context, req *proto.AssignTaskReque
 			command := models.Command{
 				Command:  parts[0],
 				Args:     parts[1:],
-				TargetOS: models.GetCurrentOS(),
+				TargetOS: utils.GetDeviceOS(),
 			}
 			result, err = executor.ExecuteCommand(command)
 		}

@@ -14,7 +14,7 @@ import (
 // ExecuteCommand executes a command with the given arguments and returns the output.
 func ExecuteCommand(cmd models.Command) (string, error) {
 	// Check if the command is whitelisted
-	if !cmd.IsValidForCurrentOS() {
+	if !IsValidForCurrentOS(cmd) {
 		return "", errors.New("command not valid for this OS")
 	}
 
