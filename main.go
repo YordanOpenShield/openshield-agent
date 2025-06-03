@@ -5,7 +5,6 @@ import (
 	"log"
 	"openshield-agent/internal/config"
 	agentgrpc "openshield-agent/internal/grpc"
-	"openshield-agent/internal/tools"
 	"openshield-agent/internal/utils"
 	"os/exec"
 	"strings"
@@ -63,15 +62,6 @@ func main() {
 	// if err != nil {
 	// 	log.Fatalf("Failed to load tools: %v", err)
 	// }
-
-	// Test Fail2Ban
-	log.Printf("Testing Fail2Ban installation...")
-	err = tools.Fail2Ban.Install()
-	if err != nil {
-		log.Printf("Failed to install Fail2Ban: %v", err)
-	} else {
-		log.Printf("Fail2Ban installed successfully.")
-	}
 
 	// Start the gRPC server
 	err = agentgrpc.StartGRPCServer(50051)
