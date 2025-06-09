@@ -5,7 +5,6 @@ import (
 	"encoding/base64"
 	"fmt"
 	"log"
-	"openshield-agent/internal/models"
 	"openshield-agent/internal/tools"
 	"openshield-agent/proto"
 	"sync"
@@ -69,14 +68,6 @@ func (s *AgentServer) ExecuteTool(ctx context.Context, req *proto.ExecuteToolReq
 	if !exists {
 		return nil, fmt.Errorf("tool %s not found", req.Name)
 	}
-	// Check if the action is supported
-	if !tool.isActionSupported(req.Action) {
-		return nil, fmt.Errorf("action %s not supported by tool %s", req.Action, req.Name)
-	}
-	// Check if the OS is supported
-	if !tool.isOSSupported(models.GetCurrentOS()) {
-		return nil, fmt.Errorf("tool %s is not supported on this OS", req.Name)
-	}
 
 	go func() {
 		var (
@@ -85,7 +76,7 @@ func (s *AgentServer) ExecuteTool(ctx context.Context, req *proto.ExecuteToolReq
 		)
 
 		// Execute the action
-		output, err := tool.ExecAction(req.Action, req.Options)
+		result, err = tool.ExecAction(req.Action, req.Options)
 		if err != nil {
 			log.Printf("[TOOL] Tool action execution failed: %v", err)
 			toolActionStatusMu.Lock()

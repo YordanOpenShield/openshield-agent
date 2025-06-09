@@ -18,6 +18,7 @@ var Fail2Ban = &Fail2BanTool{
 				Name: "install",
 				Opts: []string{},
 				Exec: func(opts []string) (string, error) {
+					var output string
 					// Detect distro by reading /etc/os-release
 					osRelease, err := os.ReadFile("/etc/os-release")
 					if err != nil {
@@ -47,7 +48,7 @@ var Fail2Ban = &Fail2BanTool{
 							return "", fmt.Errorf("command %v failed: %w\nOutput: %s", cmd.Args, err, string(output))
 						}
 					}
-					return "", nil
+					return string(output), nil
 				},
 			},
 			{
