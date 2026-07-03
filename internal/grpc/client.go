@@ -91,6 +91,11 @@ func NewManagerClient(managerAddress string) (*ManagerClient, error) {
 	}, nil
 }
 
+// ReportQueryResult sends query results back to the manager
+func (a *ManagerClient) ReportQueryResult(ctx context.Context, req *proto.QueryResultRequest) (*proto.QueryResultResponse, error) {
+	return a.client.ReportQueryResult(ctx, req)
+}
+
 // Close terminates the connection to the agent.
 func (a *ManagerClient) Close() {
 	a.conn.Close()

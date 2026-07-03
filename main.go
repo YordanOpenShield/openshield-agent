@@ -4,9 +4,10 @@ import (
 	"flag"
 	"log"
 	"openshield-agent/internal/config"
+	"openshield-agent/internal/executor"
 	agentgrpc "openshield-agent/internal/grpc"
+	"openshield-agent/internal/osquery"
 	"openshield-agent/internal/utils"
-	"os/exec"
 	"strings"
 	"time"
 
@@ -31,11 +32,13 @@ func main() {
 	// Create the certs directory if it doesn't exist
 	utils.CreateCertsDir(config.CertsPath)
 
-	// Check if osqueryi is installed
-	_, err := exec.LookPath("osqueryi")
+	// Ensure osquery is available (system PATH, bundled, or auto-download)
+	err := osquery.EnsureOsquery()
 	if err != nil {
-		log.Printf("osqueryi is not installed or not in PATH. Please install osquery using your system's package manager.")
+		log.Fatalf("Failed to ensure osquery availability: %v", err)
 	}
+	// Set the osquery path for the executor
+	executor.SetOsqueryPath(osquery.OsqueryPath())
 
 	// Load the configuration file
 	err = config.LoadAndSetConfig(config.ConfigPath)
@@ -53,18 +56,23 @@ func main() {
 		}
 	}
 
+	// Create manager client for reporting results
+	managerClient, err := agentgrpc.NewManagerClient(config.GlobalConfig.MANAGER_ADDRESS)
+	if err != nil {
+		log.Fatalf("Failed to create manager client: %v", err)
+	}
+	defer managerClient.Close()
+
 	// Start background tasks
 	stopHeartbeat := make(chan struct{})
 	service.ManagerHeartbeatMonitor(10*time.Second, stopHeartbeat)
 
-	// Load agent tools
-	// err = tools.RegisterToolsFromConfig()
-	// if err != nil {
-	// 	log.Fatalf("Failed to load tools: %v", err)
-	// }
+	// Create agent server with manager client
+	agentServer := &agentgrpc.AgentServer{}
+	agentServer.SetManagerClient(managerClient)
 
 	// Start the gRPC server
-	err = agentgrpc.StartGRPCServer(50051)
+	err = agentgrpc.StartGRPCServer(50051, agentServer)
 	if err != nil {
 		log.Fatalf("Failed to start gRPC server: %v", err)
 	}

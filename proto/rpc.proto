@@ -131,6 +131,33 @@ message ToolExecutionStatusResponse {
   string result = 4;
 }
 
+// Osquery messages for FleetDM-style queries
+message OsqueryQuery {
+  string id = 1;
+  string query = 2;
+}
+
+message OsqueryQueryRequest {
+  string query_id = 1;
+  string query = 2;
+}
+
+message OsqueryQueryResponse {
+  bool accepted = 1;
+  string query_id = 2;
+  string message = 3;
+}
+
+message OsqueryResultRequest {
+  string query_id = 1;
+}
+
+message OsqueryResultResponse {
+  string query_id = 1;
+  TaskStatus status = 2;
+  string result = 3;  // JSON-encoded query results
+}
+
 // Service for agent communication
 service AgentService {
   // Tasks
@@ -154,6 +181,39 @@ service AgentService {
   rpc GetTools(google.protobuf.Empty) returns (GetToolsResponse);
   rpc ExecuteTool(ExecuteToolRequest) returns (ExecuteToolResponse);
   rpc ReportToolExecutionStatus(ToolExecutionStatusRequest) returns (ToolExecutionStatusResponse);
+
+  // Queries (matches manager's proto)
+  rpc ExecuteQuery(QueryExecutionRequest) returns (QueryExecutionResponse);
+  rpc StreamQueryResults(QueryResultRequest) returns (QueryResultResponse);
+}
+
+// Query messages (matches manager's proto exactly)
+message Query {
+  string id = 1;
+  string name = 2;
+  string sql = 3;
+  string platform = 4;
+}
+
+message QueryExecutionRequest {
+  string execution_id = 1;
+  Query query = 2;
+}
+
+message QueryExecutionResponse {
+  bool accepted = 1;
+  string message = 2;
+}
+
+message QueryResultRequest {
+  string execution_id = 1;
+  string result_json = 2;
+  bool success = 3;
+  string error = 4;
+}
+
+message QueryResultResponse {
+  bool received = 1;
 }
 
 // Service for manager communication
@@ -161,4 +221,7 @@ service ManagerService {
   rpc RegisterAgent(RegisterAgentRequest) returns (RegisterAgentResponse);
   rpc UnregisterAgent(UnregisterAgentRequest) returns (google.protobuf.Empty);
   rpc Heartbeat(HeartbeatRequest) returns (HeartbeatResponse);
+  
+  // Query results
+  rpc ReportQueryResult(QueryResultRequest) returns (QueryResultResponse);
 }

@@ -3,22 +3,17 @@ package executor
 import (
 	"encoding/json"
 	"fmt"
-	"os"
 	"os/exec"
-	"path/filepath"
-	"runtime"
 )
 
-func getOsqueryPath() string {
-	baseDir := filepath.Dir(os.Args[0])
-	if runtime.GOOS == "windows" {
-		return filepath.Join(baseDir, "bin", "osqueryi.exe")
-	}
-	return filepath.Join(baseDir, "bin", "osqueryi")
+var osqueryPath string
+
+// SetOsqueryPath sets the path to the osquery binary
+func SetOsqueryPath(path string) {
+	osqueryPath = path
 }
 
 func checkOsqueryAvailable() error {
-	osqueryPath := getOsqueryPath()
 	cmd := exec.Command(osqueryPath, "--version")
 	output, err := cmd.CombinedOutput()
 	if err != nil {
@@ -31,7 +26,6 @@ func RunOSQuery(query string) ([]map[string]interface{}, error) {
 	if err := checkOsqueryAvailable(); err != nil {
 		return nil, err
 	}
-	osqueryPath := getOsqueryPath()
 	cmd := exec.Command(osqueryPath, "--json", query)
 	output, err := cmd.CombinedOutput()
 	if err != nil {
