@@ -15,9 +15,15 @@ import (
 // AgentServer implements proto.AgentServiceServer
 type AgentServer struct {
 	proto.UnimplementedAgentServiceServer
+	managerClient *ManagerClient
 }
 
-func StartGRPCServer(port int) error {
+// SetManagerClient sets the manager client for reporting results
+func (s *AgentServer) SetManagerClient(client *ManagerClient) {
+	s.managerClient = client
+}
+
+func StartGRPCServer(port int, server *AgentServer) error {
 	lis, err := net.Listen("tcp", fmt.Sprintf(":%d", port))
 	if err != nil {
 		return fmt.Errorf("failed to listen: %w", err)
@@ -33,7 +39,7 @@ func StartGRPCServer(port int) error {
 	grpcServer := grpc.NewServer(
 		grpc.Creds(credentials.NewTLS(tlsConfig)),
 	)
-	proto.RegisterAgentServiceServer(grpcServer, &AgentServer{})
+	proto.RegisterAgentServiceServer(grpcServer, server)
 
 	log.Printf("[AGENT] gRPC server listening on port %d", port)
 	return grpcServer.Serve(lis)
