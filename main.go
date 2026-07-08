@@ -67,6 +67,10 @@ func main() {
 	stopHeartbeat := make(chan struct{})
 	service.ManagerHeartbeatMonitor(10*time.Second, stopHeartbeat)
 
+	// Start certificate monitor to handle new interfaces (VPN, etc.)
+	stopCertMonitor := make(chan struct{})
+	service.StartCertMonitor(30*time.Second, stopCertMonitor)
+
 	// Create agent server with manager client
 	agentServer := &agentgrpc.AgentServer{}
 	agentServer.SetManagerClient(managerClient)

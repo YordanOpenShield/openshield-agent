@@ -98,6 +98,10 @@ func RequestCSRSigning(csr []byte) (*CertResponse, error) {
 	if err != nil {
 		return nil, err
 	}
+	// Add extra SANs from config
+	if len(config.GlobalConfig.EXTRA_SANS) > 0 {
+		addrs = append(addrs, config.GlobalConfig.EXTRA_SANS...)
+	}
 	// Marshal body to JSON
 	bodyMap := map[string]interface{}{
 		"sanHosts": addrs,
