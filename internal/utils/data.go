@@ -30,34 +30,45 @@ func GetDeviceID() (string, error) {
 // GetAllLocalAddresses returns all non-loopback, non-APIPA IPv4 addresses.
 func GetAllLocalAddresses() ([]string, error) {
 	var addresses []string
+	addressMap := make(map[string]bool) // deduplication
 
-	// Try using osquery first
-	addresses, err := osquery.GetAllLocalAddresses()
-
-	// If osquery fails or returns no addresses, fallback to net.InterfaceAddrs
-	if len(addresses) == 0 || err != nil {
-		ifaces, err := net.Interfaces()
-		if err != nil {
-			return nil, fmt.Errorf("failed to get network interfaces: %w", err)
+	// Method 1: Try using osquery first
+	osqueryAddrs, _ := osquery.GetAllLocalAddresses()
+	for _, addr := range osqueryAddrs {
+		if !addressMap[addr] {
+			addressMap[addr] = true
+			addresses = append(addresses, addr)
 		}
-		for _, iface := range ifaces {
-			// Skip loopback interfaces
-			if iface.Flags&net.FlagLoopback != 0 {
-				continue
-			}
-			addrs, err := iface.Addrs()
-			if err != nil {
-				log.Printf("failed to get addresses for interface %s: %v", iface.Name, err)
-				continue
-			}
-			for _, addr := range addrs {
-				if ipnet, ok := addr.(*net.IPNet); ok && ipnet.IP.To4() != nil {
-					ip := ipnet.IP.To4()
-					// Skip APIPA addresses (169.254.x.x)
-					if ip[0] == 169 && ip[1] == 254 {
-						continue
-					}
-					addresses = append(addresses, ip.String())
+	}
+
+	// Method 2: Get all interface addresses including VPN/tunnel interfaces
+	ifaces, err := net.Interfaces()
+	if err != nil {
+		return nil, fmt.Errorf("failed to get network interfaces: %w", err)
+	}
+	for _, iface := range ifaces {
+		// Skip loopback interfaces
+		if iface.Flags&net.FlagLoopback != 0 {
+			continue
+		}
+		// Include all interfaces (even down ones, to capture VPN IPs)
+		addrs, err := iface.Addrs()
+		if err != nil {
+			log.Printf("failed to get addresses for interface %s: %v", iface.Name, err)
+			continue
+		}
+		for _, addr := range addrs {
+			if ipnet, ok := addr.(*net.IPNet); ok && ipnet.IP.To4() != nil {
+				ip := ipnet.IP.To4()
+				// Skip APIPA addresses (169.254.x.x)
+				if ip[0] == 169 && ip[1] == 254 {
+					continue
+				}
+				ipStr := ip.String()
+				if !addressMap[ipStr] {
+					addressMap[ipStr] = true
+					addresses = append(addresses, ipStr)
+					log.Printf("[AGENT] Found IP: %s on interface %s", ipStr, iface.Name)
 				}
 			}
 		}

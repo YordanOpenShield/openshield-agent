@@ -28,11 +28,12 @@ func init() {
 var GlobalConfig Config
 
 type Config struct {
-	MANAGER_ADDRESS       string `yaml:"MANAGER_ADDRESS"`
-	MANAGER_API_PORT      string `yaml:"MANAGER_API_PORT"`
-	MANAGER_GRPC_PORT     string `yaml:"MANAGER_GRPC_PORT"`
-	MANAGER_REGISTER_PORT string `yaml:"MANAGER_REGISTER_PORT"`
-	COMMAND_TIMEOUT       string `yaml:"COMMAND_TIMEOUT"`
+	MANAGER_ADDRESS       string   `yaml:"MANAGER_ADDRESS"`
+	MANAGER_API_PORT      string   `yaml:"MANAGER_API_PORT"`
+	MANAGER_GRPC_PORT     string   `yaml:"MANAGER_GRPC_PORT"`
+	MANAGER_REGISTER_PORT string   `yaml:"MANAGER_REGISTER_PORT"`
+	COMMAND_TIMEOUT       string   `yaml:"COMMAND_TIMEOUT"`
+	EXTRA_SANS            []string `yaml:"EXTRA_SANS,omitempty"` // Additional IPs/DNS names for certificate
 }
 
 func GenerateConfig(managerAddress string) *Config {
