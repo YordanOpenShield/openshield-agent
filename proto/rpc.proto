@@ -80,6 +80,7 @@ message HeartbeatResponse {
 
 message RegisterAgentRequest {
   string device_id = 1;
+  string registration_token = 2;
 }
 
 message RegisterAgentResponse {
@@ -131,33 +132,6 @@ message ToolExecutionStatusResponse {
   string result = 4;
 }
 
-// Osquery messages for FleetDM-style queries
-message OsqueryQuery {
-  string id = 1;
-  string query = 2;
-}
-
-message OsqueryQueryRequest {
-  string query_id = 1;
-  string query = 2;
-}
-
-message OsqueryQueryResponse {
-  bool accepted = 1;
-  string query_id = 2;
-  string message = 3;
-}
-
-message OsqueryResultRequest {
-  string query_id = 1;
-}
-
-message OsqueryResultResponse {
-  string query_id = 1;
-  TaskStatus status = 2;
-  string result = 3;  // JSON-encoded query results
-}
-
 // Service for agent communication
 service AgentService {
   // Tasks
@@ -181,10 +155,6 @@ service AgentService {
   rpc GetTools(google.protobuf.Empty) returns (GetToolsResponse);
   rpc ExecuteTool(ExecuteToolRequest) returns (ExecuteToolResponse);
   rpc ReportToolExecutionStatus(ToolExecutionStatusRequest) returns (ToolExecutionStatusResponse);
-
-  // Queries (matches manager's proto)
-  rpc ExecuteQuery(QueryExecutionRequest) returns (QueryExecutionResponse);
-  rpc StreamQueryResults(QueryResultRequest) returns (QueryResultResponse);
 }
 
 // Query messages (matches manager's proto exactly)
@@ -222,6 +192,7 @@ service ManagerService {
   rpc UnregisterAgent(UnregisterAgentRequest) returns (google.protobuf.Empty);
   rpc Heartbeat(HeartbeatRequest) returns (HeartbeatResponse);
   
-  // Query results
+  // Queries
+  rpc SubmitQueryExecution(QueryExecutionRequest) returns (QueryExecutionResponse);
   rpc ReportQueryResult(QueryResultRequest) returns (QueryResultResponse);
 }

@@ -32,8 +32,6 @@ const (
 	AgentService_GetTools_FullMethodName                  = "/AgentService/GetTools"
 	AgentService_ExecuteTool_FullMethodName               = "/AgentService/ExecuteTool"
 	AgentService_ReportToolExecutionStatus_FullMethodName = "/AgentService/ReportToolExecutionStatus"
-	AgentService_ExecuteQuery_FullMethodName              = "/AgentService/ExecuteQuery"
-	AgentService_StreamQueryResults_FullMethodName        = "/AgentService/StreamQueryResults"
 )
 
 // AgentServiceClient is the client API for AgentService service.
@@ -59,9 +57,6 @@ type AgentServiceClient interface {
 	GetTools(ctx context.Context, in *emptypb.Empty, opts ...grpc.CallOption) (*GetToolsResponse, error)
 	ExecuteTool(ctx context.Context, in *ExecuteToolRequest, opts ...grpc.CallOption) (*ExecuteToolResponse, error)
 	ReportToolExecutionStatus(ctx context.Context, in *ToolExecutionStatusRequest, opts ...grpc.CallOption) (*ToolExecutionStatusResponse, error)
-	// Queries (matches manager's proto)
-	ExecuteQuery(ctx context.Context, in *QueryExecutionRequest, opts ...grpc.CallOption) (*QueryExecutionResponse, error)
-	StreamQueryResults(ctx context.Context, in *QueryResultRequest, opts ...grpc.CallOption) (*QueryResultResponse, error)
 }
 
 type agentServiceClient struct {
@@ -192,26 +187,6 @@ func (c *agentServiceClient) ReportToolExecutionStatus(ctx context.Context, in *
 	return out, nil
 }
 
-func (c *agentServiceClient) ExecuteQuery(ctx context.Context, in *QueryExecutionRequest, opts ...grpc.CallOption) (*QueryExecutionResponse, error) {
-	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
-	out := new(QueryExecutionResponse)
-	err := c.cc.Invoke(ctx, AgentService_ExecuteQuery_FullMethodName, in, out, cOpts...)
-	if err != nil {
-		return nil, err
-	}
-	return out, nil
-}
-
-func (c *agentServiceClient) StreamQueryResults(ctx context.Context, in *QueryResultRequest, opts ...grpc.CallOption) (*QueryResultResponse, error) {
-	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
-	out := new(QueryResultResponse)
-	err := c.cc.Invoke(ctx, AgentService_StreamQueryResults_FullMethodName, in, out, cOpts...)
-	if err != nil {
-		return nil, err
-	}
-	return out, nil
-}
-
 // AgentServiceServer is the server API for AgentService service.
 // All implementations must embed UnimplementedAgentServiceServer
 // for forward compatibility.
@@ -235,9 +210,6 @@ type AgentServiceServer interface {
 	GetTools(context.Context, *emptypb.Empty) (*GetToolsResponse, error)
 	ExecuteTool(context.Context, *ExecuteToolRequest) (*ExecuteToolResponse, error)
 	ReportToolExecutionStatus(context.Context, *ToolExecutionStatusRequest) (*ToolExecutionStatusResponse, error)
-	// Queries (matches manager's proto)
-	ExecuteQuery(context.Context, *QueryExecutionRequest) (*QueryExecutionResponse, error)
-	StreamQueryResults(context.Context, *QueryResultRequest) (*QueryResultResponse, error)
 	mustEmbedUnimplementedAgentServiceServer()
 }
 
@@ -283,12 +255,6 @@ func (UnimplementedAgentServiceServer) ExecuteTool(context.Context, *ExecuteTool
 }
 func (UnimplementedAgentServiceServer) ReportToolExecutionStatus(context.Context, *ToolExecutionStatusRequest) (*ToolExecutionStatusResponse, error) {
 	return nil, status.Error(codes.Unimplemented, "method ReportToolExecutionStatus not implemented")
-}
-func (UnimplementedAgentServiceServer) ExecuteQuery(context.Context, *QueryExecutionRequest) (*QueryExecutionResponse, error) {
-	return nil, status.Error(codes.Unimplemented, "method ExecuteQuery not implemented")
-}
-func (UnimplementedAgentServiceServer) StreamQueryResults(context.Context, *QueryResultRequest) (*QueryResultResponse, error) {
-	return nil, status.Error(codes.Unimplemented, "method StreamQueryResults not implemented")
 }
 func (UnimplementedAgentServiceServer) mustEmbedUnimplementedAgentServiceServer() {}
 func (UnimplementedAgentServiceServer) testEmbeddedByValue()                      {}
@@ -527,42 +493,6 @@ func _AgentService_ReportToolExecutionStatus_Handler(srv interface{}, ctx contex
 	return interceptor(ctx, in, info, handler)
 }
 
-func _AgentService_ExecuteQuery_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
-	in := new(QueryExecutionRequest)
-	if err := dec(in); err != nil {
-		return nil, err
-	}
-	if interceptor == nil {
-		return srv.(AgentServiceServer).ExecuteQuery(ctx, in)
-	}
-	info := &grpc.UnaryServerInfo{
-		Server:     srv,
-		FullMethod: AgentService_ExecuteQuery_FullMethodName,
-	}
-	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
-		return srv.(AgentServiceServer).ExecuteQuery(ctx, req.(*QueryExecutionRequest))
-	}
-	return interceptor(ctx, in, info, handler)
-}
-
-func _AgentService_StreamQueryResults_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
-	in := new(QueryResultRequest)
-	if err := dec(in); err != nil {
-		return nil, err
-	}
-	if interceptor == nil {
-		return srv.(AgentServiceServer).StreamQueryResults(ctx, in)
-	}
-	info := &grpc.UnaryServerInfo{
-		Server:     srv,
-		FullMethod: AgentService_StreamQueryResults_FullMethodName,
-	}
-	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
-		return srv.(AgentServiceServer).StreamQueryResults(ctx, req.(*QueryResultRequest))
-	}
-	return interceptor(ctx, in, info, handler)
-}
-
 // AgentService_ServiceDesc is the grpc.ServiceDesc for AgentService service.
 // It's only intended for direct use with grpc.RegisterService,
 // and not to be introspected or modified (even as a copy)
@@ -618,24 +548,17 @@ var AgentService_ServiceDesc = grpc.ServiceDesc{
 			MethodName: "ReportToolExecutionStatus",
 			Handler:    _AgentService_ReportToolExecutionStatus_Handler,
 		},
-		{
-			MethodName: "ExecuteQuery",
-			Handler:    _AgentService_ExecuteQuery_Handler,
-		},
-		{
-			MethodName: "StreamQueryResults",
-			Handler:    _AgentService_StreamQueryResults_Handler,
-		},
 	},
 	Streams:  []grpc.StreamDesc{},
 	Metadata: "proto/rpc.proto",
 }
 
 const (
-	ManagerService_RegisterAgent_FullMethodName     = "/ManagerService/RegisterAgent"
-	ManagerService_UnregisterAgent_FullMethodName   = "/ManagerService/UnregisterAgent"
-	ManagerService_Heartbeat_FullMethodName         = "/ManagerService/Heartbeat"
-	ManagerService_ReportQueryResult_FullMethodName = "/ManagerService/ReportQueryResult"
+	ManagerService_RegisterAgent_FullMethodName        = "/ManagerService/RegisterAgent"
+	ManagerService_UnregisterAgent_FullMethodName      = "/ManagerService/UnregisterAgent"
+	ManagerService_Heartbeat_FullMethodName            = "/ManagerService/Heartbeat"
+	ManagerService_SubmitQueryExecution_FullMethodName = "/ManagerService/SubmitQueryExecution"
+	ManagerService_ReportQueryResult_FullMethodName    = "/ManagerService/ReportQueryResult"
 )
 
 // ManagerServiceClient is the client API for ManagerService service.
@@ -647,7 +570,8 @@ type ManagerServiceClient interface {
 	RegisterAgent(ctx context.Context, in *RegisterAgentRequest, opts ...grpc.CallOption) (*RegisterAgentResponse, error)
 	UnregisterAgent(ctx context.Context, in *UnregisterAgentRequest, opts ...grpc.CallOption) (*emptypb.Empty, error)
 	Heartbeat(ctx context.Context, in *HeartbeatRequest, opts ...grpc.CallOption) (*HeartbeatResponse, error)
-	// Query results
+	// Queries
+	SubmitQueryExecution(ctx context.Context, in *QueryExecutionRequest, opts ...grpc.CallOption) (*QueryExecutionResponse, error)
 	ReportQueryResult(ctx context.Context, in *QueryResultRequest, opts ...grpc.CallOption) (*QueryResultResponse, error)
 }
 
@@ -689,6 +613,16 @@ func (c *managerServiceClient) Heartbeat(ctx context.Context, in *HeartbeatReque
 	return out, nil
 }
 
+func (c *managerServiceClient) SubmitQueryExecution(ctx context.Context, in *QueryExecutionRequest, opts ...grpc.CallOption) (*QueryExecutionResponse, error) {
+	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
+	out := new(QueryExecutionResponse)
+	err := c.cc.Invoke(ctx, ManagerService_SubmitQueryExecution_FullMethodName, in, out, cOpts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
 func (c *managerServiceClient) ReportQueryResult(ctx context.Context, in *QueryResultRequest, opts ...grpc.CallOption) (*QueryResultResponse, error) {
 	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
 	out := new(QueryResultResponse)
@@ -708,7 +642,8 @@ type ManagerServiceServer interface {
 	RegisterAgent(context.Context, *RegisterAgentRequest) (*RegisterAgentResponse, error)
 	UnregisterAgent(context.Context, *UnregisterAgentRequest) (*emptypb.Empty, error)
 	Heartbeat(context.Context, *HeartbeatRequest) (*HeartbeatResponse, error)
-	// Query results
+	// Queries
+	SubmitQueryExecution(context.Context, *QueryExecutionRequest) (*QueryExecutionResponse, error)
 	ReportQueryResult(context.Context, *QueryResultRequest) (*QueryResultResponse, error)
 	mustEmbedUnimplementedManagerServiceServer()
 }
@@ -728,6 +663,9 @@ func (UnimplementedManagerServiceServer) UnregisterAgent(context.Context, *Unreg
 }
 func (UnimplementedManagerServiceServer) Heartbeat(context.Context, *HeartbeatRequest) (*HeartbeatResponse, error) {
 	return nil, status.Error(codes.Unimplemented, "method Heartbeat not implemented")
+}
+func (UnimplementedManagerServiceServer) SubmitQueryExecution(context.Context, *QueryExecutionRequest) (*QueryExecutionResponse, error) {
+	return nil, status.Error(codes.Unimplemented, "method SubmitQueryExecution not implemented")
 }
 func (UnimplementedManagerServiceServer) ReportQueryResult(context.Context, *QueryResultRequest) (*QueryResultResponse, error) {
 	return nil, status.Error(codes.Unimplemented, "method ReportQueryResult not implemented")
@@ -807,6 +745,24 @@ func _ManagerService_Heartbeat_Handler(srv interface{}, ctx context.Context, dec
 	return interceptor(ctx, in, info, handler)
 }
 
+func _ManagerService_SubmitQueryExecution_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(QueryExecutionRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(ManagerServiceServer).SubmitQueryExecution(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: ManagerService_SubmitQueryExecution_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(ManagerServiceServer).SubmitQueryExecution(ctx, req.(*QueryExecutionRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
 func _ManagerService_ReportQueryResult_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
 	in := new(QueryResultRequest)
 	if err := dec(in); err != nil {
@@ -843,6 +799,10 @@ var ManagerService_ServiceDesc = grpc.ServiceDesc{
 		{
 			MethodName: "Heartbeat",
 			Handler:    _ManagerService_Heartbeat_Handler,
+		},
+		{
+			MethodName: "SubmitQueryExecution",
+			Handler:    _ManagerService_SubmitQueryExecution_Handler,
 		},
 		{
 			MethodName: "ReportQueryResult",

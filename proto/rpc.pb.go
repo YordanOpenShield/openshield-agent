@@ -775,10 +775,11 @@ func (x *HeartbeatResponse) GetOk() bool {
 }
 
 type RegisterAgentRequest struct {
-	state         protoimpl.MessageState `protogen:"open.v1"`
-	DeviceId      string                 `protobuf:"bytes,1,opt,name=device_id,json=deviceId,proto3" json:"device_id,omitempty"`
-	unknownFields protoimpl.UnknownFields
-	sizeCache     protoimpl.SizeCache
+	state             protoimpl.MessageState `protogen:"open.v1"`
+	DeviceId          string                 `protobuf:"bytes,1,opt,name=device_id,json=deviceId,proto3" json:"device_id,omitempty"`
+	RegistrationToken string                 `protobuf:"bytes,2,opt,name=registration_token,json=registrationToken,proto3" json:"registration_token,omitempty"`
+	unknownFields     protoimpl.UnknownFields
+	sizeCache         protoimpl.SizeCache
 }
 
 func (x *RegisterAgentRequest) Reset() {
@@ -814,6 +815,13 @@ func (*RegisterAgentRequest) Descriptor() ([]byte, []int) {
 func (x *RegisterAgentRequest) GetDeviceId() string {
 	if x != nil {
 		return x.DeviceId
+	}
+	return ""
+}
+
+func (x *RegisterAgentRequest) GetRegistrationToken() string {
+	if x != nil {
+		return x.RegistrationToken
 	}
 	return ""
 }
@@ -1318,275 +1326,6 @@ func (x *ToolExecutionStatusResponse) GetResult() string {
 	return ""
 }
 
-// Osquery messages for FleetDM-style queries
-type OsqueryQuery struct {
-	state         protoimpl.MessageState `protogen:"open.v1"`
-	Id            string                 `protobuf:"bytes,1,opt,name=id,proto3" json:"id,omitempty"`
-	Query         string                 `protobuf:"bytes,2,opt,name=query,proto3" json:"query,omitempty"`
-	unknownFields protoimpl.UnknownFields
-	sizeCache     protoimpl.SizeCache
-}
-
-func (x *OsqueryQuery) Reset() {
-	*x = OsqueryQuery{}
-	mi := &file_proto_rpc_proto_msgTypes[23]
-	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
-	ms.StoreMessageInfo(mi)
-}
-
-func (x *OsqueryQuery) String() string {
-	return protoimpl.X.MessageStringOf(x)
-}
-
-func (*OsqueryQuery) ProtoMessage() {}
-
-func (x *OsqueryQuery) ProtoReflect() protoreflect.Message {
-	mi := &file_proto_rpc_proto_msgTypes[23]
-	if x != nil {
-		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
-		if ms.LoadMessageInfo() == nil {
-			ms.StoreMessageInfo(mi)
-		}
-		return ms
-	}
-	return mi.MessageOf(x)
-}
-
-// Deprecated: Use OsqueryQuery.ProtoReflect.Descriptor instead.
-func (*OsqueryQuery) Descriptor() ([]byte, []int) {
-	return file_proto_rpc_proto_rawDescGZIP(), []int{23}
-}
-
-func (x *OsqueryQuery) GetId() string {
-	if x != nil {
-		return x.Id
-	}
-	return ""
-}
-
-func (x *OsqueryQuery) GetQuery() string {
-	if x != nil {
-		return x.Query
-	}
-	return ""
-}
-
-type OsqueryQueryRequest struct {
-	state         protoimpl.MessageState `protogen:"open.v1"`
-	QueryId       string                 `protobuf:"bytes,1,opt,name=query_id,json=queryId,proto3" json:"query_id,omitempty"`
-	Query         string                 `protobuf:"bytes,2,opt,name=query,proto3" json:"query,omitempty"`
-	unknownFields protoimpl.UnknownFields
-	sizeCache     protoimpl.SizeCache
-}
-
-func (x *OsqueryQueryRequest) Reset() {
-	*x = OsqueryQueryRequest{}
-	mi := &file_proto_rpc_proto_msgTypes[24]
-	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
-	ms.StoreMessageInfo(mi)
-}
-
-func (x *OsqueryQueryRequest) String() string {
-	return protoimpl.X.MessageStringOf(x)
-}
-
-func (*OsqueryQueryRequest) ProtoMessage() {}
-
-func (x *OsqueryQueryRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_proto_rpc_proto_msgTypes[24]
-	if x != nil {
-		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
-		if ms.LoadMessageInfo() == nil {
-			ms.StoreMessageInfo(mi)
-		}
-		return ms
-	}
-	return mi.MessageOf(x)
-}
-
-// Deprecated: Use OsqueryQueryRequest.ProtoReflect.Descriptor instead.
-func (*OsqueryQueryRequest) Descriptor() ([]byte, []int) {
-	return file_proto_rpc_proto_rawDescGZIP(), []int{24}
-}
-
-func (x *OsqueryQueryRequest) GetQueryId() string {
-	if x != nil {
-		return x.QueryId
-	}
-	return ""
-}
-
-func (x *OsqueryQueryRequest) GetQuery() string {
-	if x != nil {
-		return x.Query
-	}
-	return ""
-}
-
-type OsqueryQueryResponse struct {
-	state         protoimpl.MessageState `protogen:"open.v1"`
-	Accepted      bool                   `protobuf:"varint,1,opt,name=accepted,proto3" json:"accepted,omitempty"`
-	QueryId       string                 `protobuf:"bytes,2,opt,name=query_id,json=queryId,proto3" json:"query_id,omitempty"`
-	Message       string                 `protobuf:"bytes,3,opt,name=message,proto3" json:"message,omitempty"`
-	unknownFields protoimpl.UnknownFields
-	sizeCache     protoimpl.SizeCache
-}
-
-func (x *OsqueryQueryResponse) Reset() {
-	*x = OsqueryQueryResponse{}
-	mi := &file_proto_rpc_proto_msgTypes[25]
-	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
-	ms.StoreMessageInfo(mi)
-}
-
-func (x *OsqueryQueryResponse) String() string {
-	return protoimpl.X.MessageStringOf(x)
-}
-
-func (*OsqueryQueryResponse) ProtoMessage() {}
-
-func (x *OsqueryQueryResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_proto_rpc_proto_msgTypes[25]
-	if x != nil {
-		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
-		if ms.LoadMessageInfo() == nil {
-			ms.StoreMessageInfo(mi)
-		}
-		return ms
-	}
-	return mi.MessageOf(x)
-}
-
-// Deprecated: Use OsqueryQueryResponse.ProtoReflect.Descriptor instead.
-func (*OsqueryQueryResponse) Descriptor() ([]byte, []int) {
-	return file_proto_rpc_proto_rawDescGZIP(), []int{25}
-}
-
-func (x *OsqueryQueryResponse) GetAccepted() bool {
-	if x != nil {
-		return x.Accepted
-	}
-	return false
-}
-
-func (x *OsqueryQueryResponse) GetQueryId() string {
-	if x != nil {
-		return x.QueryId
-	}
-	return ""
-}
-
-func (x *OsqueryQueryResponse) GetMessage() string {
-	if x != nil {
-		return x.Message
-	}
-	return ""
-}
-
-type OsqueryResultRequest struct {
-	state         protoimpl.MessageState `protogen:"open.v1"`
-	QueryId       string                 `protobuf:"bytes,1,opt,name=query_id,json=queryId,proto3" json:"query_id,omitempty"`
-	unknownFields protoimpl.UnknownFields
-	sizeCache     protoimpl.SizeCache
-}
-
-func (x *OsqueryResultRequest) Reset() {
-	*x = OsqueryResultRequest{}
-	mi := &file_proto_rpc_proto_msgTypes[26]
-	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
-	ms.StoreMessageInfo(mi)
-}
-
-func (x *OsqueryResultRequest) String() string {
-	return protoimpl.X.MessageStringOf(x)
-}
-
-func (*OsqueryResultRequest) ProtoMessage() {}
-
-func (x *OsqueryResultRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_proto_rpc_proto_msgTypes[26]
-	if x != nil {
-		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
-		if ms.LoadMessageInfo() == nil {
-			ms.StoreMessageInfo(mi)
-		}
-		return ms
-	}
-	return mi.MessageOf(x)
-}
-
-// Deprecated: Use OsqueryResultRequest.ProtoReflect.Descriptor instead.
-func (*OsqueryResultRequest) Descriptor() ([]byte, []int) {
-	return file_proto_rpc_proto_rawDescGZIP(), []int{26}
-}
-
-func (x *OsqueryResultRequest) GetQueryId() string {
-	if x != nil {
-		return x.QueryId
-	}
-	return ""
-}
-
-type OsqueryResultResponse struct {
-	state         protoimpl.MessageState `protogen:"open.v1"`
-	QueryId       string                 `protobuf:"bytes,1,opt,name=query_id,json=queryId,proto3" json:"query_id,omitempty"`
-	Status        TaskStatus             `protobuf:"varint,2,opt,name=status,proto3,enum=TaskStatus" json:"status,omitempty"`
-	Result        string                 `protobuf:"bytes,3,opt,name=result,proto3" json:"result,omitempty"` // JSON-encoded query results
-	unknownFields protoimpl.UnknownFields
-	sizeCache     protoimpl.SizeCache
-}
-
-func (x *OsqueryResultResponse) Reset() {
-	*x = OsqueryResultResponse{}
-	mi := &file_proto_rpc_proto_msgTypes[27]
-	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
-	ms.StoreMessageInfo(mi)
-}
-
-func (x *OsqueryResultResponse) String() string {
-	return protoimpl.X.MessageStringOf(x)
-}
-
-func (*OsqueryResultResponse) ProtoMessage() {}
-
-func (x *OsqueryResultResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_proto_rpc_proto_msgTypes[27]
-	if x != nil {
-		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
-		if ms.LoadMessageInfo() == nil {
-			ms.StoreMessageInfo(mi)
-		}
-		return ms
-	}
-	return mi.MessageOf(x)
-}
-
-// Deprecated: Use OsqueryResultResponse.ProtoReflect.Descriptor instead.
-func (*OsqueryResultResponse) Descriptor() ([]byte, []int) {
-	return file_proto_rpc_proto_rawDescGZIP(), []int{27}
-}
-
-func (x *OsqueryResultResponse) GetQueryId() string {
-	if x != nil {
-		return x.QueryId
-	}
-	return ""
-}
-
-func (x *OsqueryResultResponse) GetStatus() TaskStatus {
-	if x != nil {
-		return x.Status
-	}
-	return TaskStatus_PENDING
-}
-
-func (x *OsqueryResultResponse) GetResult() string {
-	if x != nil {
-		return x.Result
-	}
-	return ""
-}
-
 // Query messages (matches manager's proto exactly)
 type Query struct {
 	state         protoimpl.MessageState `protogen:"open.v1"`
@@ -1600,7 +1339,7 @@ type Query struct {
 
 func (x *Query) Reset() {
 	*x = Query{}
-	mi := &file_proto_rpc_proto_msgTypes[28]
+	mi := &file_proto_rpc_proto_msgTypes[23]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -1612,7 +1351,7 @@ func (x *Query) String() string {
 func (*Query) ProtoMessage() {}
 
 func (x *Query) ProtoReflect() protoreflect.Message {
-	mi := &file_proto_rpc_proto_msgTypes[28]
+	mi := &file_proto_rpc_proto_msgTypes[23]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -1625,7 +1364,7 @@ func (x *Query) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use Query.ProtoReflect.Descriptor instead.
 func (*Query) Descriptor() ([]byte, []int) {
-	return file_proto_rpc_proto_rawDescGZIP(), []int{28}
+	return file_proto_rpc_proto_rawDescGZIP(), []int{23}
 }
 
 func (x *Query) GetId() string {
@@ -1666,7 +1405,7 @@ type QueryExecutionRequest struct {
 
 func (x *QueryExecutionRequest) Reset() {
 	*x = QueryExecutionRequest{}
-	mi := &file_proto_rpc_proto_msgTypes[29]
+	mi := &file_proto_rpc_proto_msgTypes[24]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -1678,7 +1417,7 @@ func (x *QueryExecutionRequest) String() string {
 func (*QueryExecutionRequest) ProtoMessage() {}
 
 func (x *QueryExecutionRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_proto_rpc_proto_msgTypes[29]
+	mi := &file_proto_rpc_proto_msgTypes[24]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -1691,7 +1430,7 @@ func (x *QueryExecutionRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use QueryExecutionRequest.ProtoReflect.Descriptor instead.
 func (*QueryExecutionRequest) Descriptor() ([]byte, []int) {
-	return file_proto_rpc_proto_rawDescGZIP(), []int{29}
+	return file_proto_rpc_proto_rawDescGZIP(), []int{24}
 }
 
 func (x *QueryExecutionRequest) GetExecutionId() string {
@@ -1718,7 +1457,7 @@ type QueryExecutionResponse struct {
 
 func (x *QueryExecutionResponse) Reset() {
 	*x = QueryExecutionResponse{}
-	mi := &file_proto_rpc_proto_msgTypes[30]
+	mi := &file_proto_rpc_proto_msgTypes[25]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -1730,7 +1469,7 @@ func (x *QueryExecutionResponse) String() string {
 func (*QueryExecutionResponse) ProtoMessage() {}
 
 func (x *QueryExecutionResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_proto_rpc_proto_msgTypes[30]
+	mi := &file_proto_rpc_proto_msgTypes[25]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -1743,7 +1482,7 @@ func (x *QueryExecutionResponse) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use QueryExecutionResponse.ProtoReflect.Descriptor instead.
 func (*QueryExecutionResponse) Descriptor() ([]byte, []int) {
-	return file_proto_rpc_proto_rawDescGZIP(), []int{30}
+	return file_proto_rpc_proto_rawDescGZIP(), []int{25}
 }
 
 func (x *QueryExecutionResponse) GetAccepted() bool {
@@ -1772,7 +1511,7 @@ type QueryResultRequest struct {
 
 func (x *QueryResultRequest) Reset() {
 	*x = QueryResultRequest{}
-	mi := &file_proto_rpc_proto_msgTypes[31]
+	mi := &file_proto_rpc_proto_msgTypes[26]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -1784,7 +1523,7 @@ func (x *QueryResultRequest) String() string {
 func (*QueryResultRequest) ProtoMessage() {}
 
 func (x *QueryResultRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_proto_rpc_proto_msgTypes[31]
+	mi := &file_proto_rpc_proto_msgTypes[26]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -1797,7 +1536,7 @@ func (x *QueryResultRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use QueryResultRequest.ProtoReflect.Descriptor instead.
 func (*QueryResultRequest) Descriptor() ([]byte, []int) {
-	return file_proto_rpc_proto_rawDescGZIP(), []int{31}
+	return file_proto_rpc_proto_rawDescGZIP(), []int{26}
 }
 
 func (x *QueryResultRequest) GetExecutionId() string {
@@ -1837,7 +1576,7 @@ type QueryResultResponse struct {
 
 func (x *QueryResultResponse) Reset() {
 	*x = QueryResultResponse{}
-	mi := &file_proto_rpc_proto_msgTypes[32]
+	mi := &file_proto_rpc_proto_msgTypes[27]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -1849,7 +1588,7 @@ func (x *QueryResultResponse) String() string {
 func (*QueryResultResponse) ProtoMessage() {}
 
 func (x *QueryResultResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_proto_rpc_proto_msgTypes[32]
+	mi := &file_proto_rpc_proto_msgTypes[27]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -1862,7 +1601,7 @@ func (x *QueryResultResponse) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use QueryResultResponse.ProtoReflect.Descriptor instead.
 func (*QueryResultResponse) Descriptor() ([]byte, []int) {
-	return file_proto_rpc_proto_rawDescGZIP(), []int{32}
+	return file_proto_rpc_proto_rawDescGZIP(), []int{27}
 }
 
 func (x *QueryResultResponse) GetReceived() bool {
@@ -1919,9 +1658,10 @@ const file_proto_rpc_proto_rawDesc = "" +
 	"\bagent_id\x18\x01 \x01(\tR\aagentId\x12\x18\n" +
 	"\amessage\x18\x02 \x01(\tR\amessage\"#\n" +
 	"\x11HeartbeatResponse\x12\x0e\n" +
-	"\x02ok\x18\x01 \x01(\bR\x02ok\"3\n" +
+	"\x02ok\x18\x01 \x01(\bR\x02ok\"b\n" +
 	"\x14RegisterAgentRequest\x12\x1b\n" +
-	"\tdevice_id\x18\x01 \x01(\tR\bdeviceId\"=\n" +
+	"\tdevice_id\x18\x01 \x01(\tR\bdeviceId\x12-\n" +
+	"\x12registration_token\x18\x02 \x01(\tR\x11registrationToken\"=\n" +
 	"\x15RegisterAgentResponse\x12\x0e\n" +
 	"\x02id\x18\x01 \x01(\tR\x02id\x12\x14\n" +
 	"\x05token\x18\x02 \x01(\tR\x05token\"(\n" +
@@ -1953,23 +1693,7 @@ const file_proto_rpc_proto_rawDesc = "" +
 	"\x04name\x18\x01 \x01(\tR\x04name\x12\x16\n" +
 	"\x06action\x18\x02 \x01(\tR\x06action\x12#\n" +
 	"\x06status\x18\x03 \x01(\x0e2\v.TaskStatusR\x06status\x12\x16\n" +
-	"\x06result\x18\x04 \x01(\tR\x06result\"4\n" +
-	"\fOsqueryQuery\x12\x0e\n" +
-	"\x02id\x18\x01 \x01(\tR\x02id\x12\x14\n" +
-	"\x05query\x18\x02 \x01(\tR\x05query\"F\n" +
-	"\x13OsqueryQueryRequest\x12\x19\n" +
-	"\bquery_id\x18\x01 \x01(\tR\aqueryId\x12\x14\n" +
-	"\x05query\x18\x02 \x01(\tR\x05query\"g\n" +
-	"\x14OsqueryQueryResponse\x12\x1a\n" +
-	"\baccepted\x18\x01 \x01(\bR\baccepted\x12\x19\n" +
-	"\bquery_id\x18\x02 \x01(\tR\aqueryId\x12\x18\n" +
-	"\amessage\x18\x03 \x01(\tR\amessage\"1\n" +
-	"\x14OsqueryResultRequest\x12\x19\n" +
-	"\bquery_id\x18\x01 \x01(\tR\aqueryId\"o\n" +
-	"\x15OsqueryResultResponse\x12\x19\n" +
-	"\bquery_id\x18\x01 \x01(\tR\aqueryId\x12#\n" +
-	"\x06status\x18\x02 \x01(\x0e2\v.TaskStatusR\x06status\x12\x16\n" +
-	"\x06result\x18\x03 \x01(\tR\x06result\"Y\n" +
+	"\x06result\x18\x04 \x01(\tR\x06result\"Y\n" +
 	"\x05Query\x12\x0e\n" +
 	"\x02id\x18\x01 \x01(\tR\x02id\x12\x12\n" +
 	"\x04name\x18\x02 \x01(\tR\x04name\x12\x10\n" +
@@ -1995,7 +1719,7 @@ const file_proto_rpc_proto_rawDesc = "" +
 	"\aRUNNING\x10\x01\x12\r\n" +
 	"\tCOMPLETED\x10\x02\x12\n" +
 	"\n" +
-	"\x06FAILED\x10\x032\xe7\x06\n" +
+	"\x06FAILED\x10\x032\xe5\x05\n" +
 	"\fAgentService\x125\n" +
 	"\n" +
 	"AssignTask\x12\x12.AssignTaskRequest\x1a\x13.AssignTaskResponse\x129\n" +
@@ -2009,13 +1733,12 @@ const file_proto_rpc_proto_rawDesc = "" +
 	"\x0eSendConfigFile\x12\f.FileContent\x1a\v.SyncStatus\x125\n" +
 	"\bGetTools\x12\x16.google.protobuf.Empty\x1a\x11.GetToolsResponse\x128\n" +
 	"\vExecuteTool\x12\x13.ExecuteToolRequest\x1a\x14.ExecuteToolResponse\x12V\n" +
-	"\x19ReportToolExecutionStatus\x12\x1b.ToolExecutionStatusRequest\x1a\x1c.ToolExecutionStatusResponse\x12?\n" +
-	"\fExecuteQuery\x12\x16.QueryExecutionRequest\x1a\x17.QueryExecutionResponse\x12?\n" +
-	"\x12StreamQueryResults\x12\x13.QueryResultRequest\x1a\x14.QueryResultResponse2\x88\x02\n" +
+	"\x19ReportToolExecutionStatus\x12\x1b.ToolExecutionStatusRequest\x1a\x1c.ToolExecutionStatusResponse2\xd1\x02\n" +
 	"\x0eManagerService\x12>\n" +
 	"\rRegisterAgent\x12\x15.RegisterAgentRequest\x1a\x16.RegisterAgentResponse\x12B\n" +
 	"\x0fUnregisterAgent\x12\x17.UnregisterAgentRequest\x1a\x16.google.protobuf.Empty\x122\n" +
-	"\tHeartbeat\x12\x11.HeartbeatRequest\x1a\x12.HeartbeatResponse\x12>\n" +
+	"\tHeartbeat\x12\x11.HeartbeatRequest\x1a\x12.HeartbeatResponse\x12G\n" +
+	"\x14SubmitQueryExecution\x12\x16.QueryExecutionRequest\x1a\x17.QueryExecutionResponse\x12>\n" +
 	"\x11ReportQueryResult\x12\x13.QueryResultRequest\x1a\x14.QueryResultResponseB\bZ\x06proto/b\x06proto3"
 
 var (
@@ -2031,7 +1754,7 @@ func file_proto_rpc_proto_rawDescGZIP() []byte {
 }
 
 var file_proto_rpc_proto_enumTypes = make([]protoimpl.EnumInfo, 1)
-var file_proto_rpc_proto_msgTypes = make([]protoimpl.MessageInfo, 33)
+var file_proto_rpc_proto_msgTypes = make([]protoimpl.MessageInfo, 28)
 var file_proto_rpc_proto_goTypes = []any{
 	(TaskStatus)(0),                     // 0: TaskStatus
 	(*Job)(nil),                         // 1: Job
@@ -2057,17 +1780,12 @@ var file_proto_rpc_proto_goTypes = []any{
 	(*ExecuteToolResponse)(nil),         // 21: ExecuteToolResponse
 	(*ToolExecutionStatusRequest)(nil),  // 22: ToolExecutionStatusRequest
 	(*ToolExecutionStatusResponse)(nil), // 23: ToolExecutionStatusResponse
-	(*OsqueryQuery)(nil),                // 24: OsqueryQuery
-	(*OsqueryQueryRequest)(nil),         // 25: OsqueryQueryRequest
-	(*OsqueryQueryResponse)(nil),        // 26: OsqueryQueryResponse
-	(*OsqueryResultRequest)(nil),        // 27: OsqueryResultRequest
-	(*OsqueryResultResponse)(nil),       // 28: OsqueryResultResponse
-	(*Query)(nil),                       // 29: Query
-	(*QueryExecutionRequest)(nil),       // 30: QueryExecutionRequest
-	(*QueryExecutionResponse)(nil),      // 31: QueryExecutionResponse
-	(*QueryResultRequest)(nil),          // 32: QueryResultRequest
-	(*QueryResultResponse)(nil),         // 33: QueryResultResponse
-	(*emptypb.Empty)(nil),               // 34: google.protobuf.Empty
+	(*Query)(nil),                       // 24: Query
+	(*QueryExecutionRequest)(nil),       // 25: QueryExecutionRequest
+	(*QueryExecutionResponse)(nil),      // 26: QueryExecutionResponse
+	(*QueryResultRequest)(nil),          // 27: QueryResultRequest
+	(*QueryResultResponse)(nil),         // 28: QueryResultResponse
+	(*emptypb.Empty)(nil),               // 29: google.protobuf.Empty
 }
 var file_proto_rpc_proto_depIdxs = []int32{
 	0,  // 0: Task.status:type_name -> TaskStatus
@@ -2078,49 +1796,46 @@ var file_proto_rpc_proto_depIdxs = []int32{
 	18, // 5: Tool.actions:type_name -> ToolAction
 	17, // 6: GetToolsResponse.tools:type_name -> Tool
 	0,  // 7: ToolExecutionStatusResponse.status:type_name -> TaskStatus
-	0,  // 8: OsqueryResultResponse.status:type_name -> TaskStatus
-	29, // 9: QueryExecutionRequest.query:type_name -> Query
-	3,  // 10: AgentService.AssignTask:input_type -> AssignTaskRequest
-	5,  // 11: AgentService.ReportTaskStatus:input_type -> JobStatusRequest
-	34, // 12: AgentService.GetScriptChecksums:input_type -> google.protobuf.Empty
-	9,  // 13: AgentService.SendScriptFile:input_type -> FileContent
-	11, // 14: AgentService.DeleteScriptFile:input_type -> DeleteScriptRequest
-	34, // 15: AgentService.UnregisterAgentAsk:input_type -> google.protobuf.Empty
-	34, // 16: AgentService.TryAgentAddress:input_type -> google.protobuf.Empty
-	34, // 17: AgentService.GetConfigChecksums:input_type -> google.protobuf.Empty
-	9,  // 18: AgentService.SendConfigFile:input_type -> FileContent
-	34, // 19: AgentService.GetTools:input_type -> google.protobuf.Empty
-	20, // 20: AgentService.ExecuteTool:input_type -> ExecuteToolRequest
-	22, // 21: AgentService.ReportToolExecutionStatus:input_type -> ToolExecutionStatusRequest
-	30, // 22: AgentService.ExecuteQuery:input_type -> QueryExecutionRequest
-	32, // 23: AgentService.StreamQueryResults:input_type -> QueryResultRequest
-	14, // 24: ManagerService.RegisterAgent:input_type -> RegisterAgentRequest
-	16, // 25: ManagerService.UnregisterAgent:input_type -> UnregisterAgentRequest
-	12, // 26: ManagerService.Heartbeat:input_type -> HeartbeatRequest
-	32, // 27: ManagerService.ReportQueryResult:input_type -> QueryResultRequest
-	4,  // 28: AgentService.AssignTask:output_type -> AssignTaskResponse
-	6,  // 29: AgentService.ReportTaskStatus:output_type -> JobStatusResponse
-	8,  // 30: AgentService.GetScriptChecksums:output_type -> ChecksumResponse
-	10, // 31: AgentService.SendScriptFile:output_type -> SyncStatus
-	10, // 32: AgentService.DeleteScriptFile:output_type -> SyncStatus
-	34, // 33: AgentService.UnregisterAgentAsk:output_type -> google.protobuf.Empty
-	34, // 34: AgentService.TryAgentAddress:output_type -> google.protobuf.Empty
-	8,  // 35: AgentService.GetConfigChecksums:output_type -> ChecksumResponse
-	10, // 36: AgentService.SendConfigFile:output_type -> SyncStatus
-	19, // 37: AgentService.GetTools:output_type -> GetToolsResponse
-	21, // 38: AgentService.ExecuteTool:output_type -> ExecuteToolResponse
-	23, // 39: AgentService.ReportToolExecutionStatus:output_type -> ToolExecutionStatusResponse
-	31, // 40: AgentService.ExecuteQuery:output_type -> QueryExecutionResponse
-	33, // 41: AgentService.StreamQueryResults:output_type -> QueryResultResponse
-	15, // 42: ManagerService.RegisterAgent:output_type -> RegisterAgentResponse
-	34, // 43: ManagerService.UnregisterAgent:output_type -> google.protobuf.Empty
-	13, // 44: ManagerService.Heartbeat:output_type -> HeartbeatResponse
-	33, // 45: ManagerService.ReportQueryResult:output_type -> QueryResultResponse
-	28, // [28:46] is the sub-list for method output_type
-	10, // [10:28] is the sub-list for method input_type
-	10, // [10:10] is the sub-list for extension type_name
-	10, // [10:10] is the sub-list for extension extendee
-	0,  // [0:10] is the sub-list for field type_name
+	24, // 8: QueryExecutionRequest.query:type_name -> Query
+	3,  // 9: AgentService.AssignTask:input_type -> AssignTaskRequest
+	5,  // 10: AgentService.ReportTaskStatus:input_type -> JobStatusRequest
+	29, // 11: AgentService.GetScriptChecksums:input_type -> google.protobuf.Empty
+	9,  // 12: AgentService.SendScriptFile:input_type -> FileContent
+	11, // 13: AgentService.DeleteScriptFile:input_type -> DeleteScriptRequest
+	29, // 14: AgentService.UnregisterAgentAsk:input_type -> google.protobuf.Empty
+	29, // 15: AgentService.TryAgentAddress:input_type -> google.protobuf.Empty
+	29, // 16: AgentService.GetConfigChecksums:input_type -> google.protobuf.Empty
+	9,  // 17: AgentService.SendConfigFile:input_type -> FileContent
+	29, // 18: AgentService.GetTools:input_type -> google.protobuf.Empty
+	20, // 19: AgentService.ExecuteTool:input_type -> ExecuteToolRequest
+	22, // 20: AgentService.ReportToolExecutionStatus:input_type -> ToolExecutionStatusRequest
+	14, // 21: ManagerService.RegisterAgent:input_type -> RegisterAgentRequest
+	16, // 22: ManagerService.UnregisterAgent:input_type -> UnregisterAgentRequest
+	12, // 23: ManagerService.Heartbeat:input_type -> HeartbeatRequest
+	25, // 24: ManagerService.SubmitQueryExecution:input_type -> QueryExecutionRequest
+	27, // 25: ManagerService.ReportQueryResult:input_type -> QueryResultRequest
+	4,  // 26: AgentService.AssignTask:output_type -> AssignTaskResponse
+	6,  // 27: AgentService.ReportTaskStatus:output_type -> JobStatusResponse
+	8,  // 28: AgentService.GetScriptChecksums:output_type -> ChecksumResponse
+	10, // 29: AgentService.SendScriptFile:output_type -> SyncStatus
+	10, // 30: AgentService.DeleteScriptFile:output_type -> SyncStatus
+	29, // 31: AgentService.UnregisterAgentAsk:output_type -> google.protobuf.Empty
+	29, // 32: AgentService.TryAgentAddress:output_type -> google.protobuf.Empty
+	8,  // 33: AgentService.GetConfigChecksums:output_type -> ChecksumResponse
+	10, // 34: AgentService.SendConfigFile:output_type -> SyncStatus
+	19, // 35: AgentService.GetTools:output_type -> GetToolsResponse
+	21, // 36: AgentService.ExecuteTool:output_type -> ExecuteToolResponse
+	23, // 37: AgentService.ReportToolExecutionStatus:output_type -> ToolExecutionStatusResponse
+	15, // 38: ManagerService.RegisterAgent:output_type -> RegisterAgentResponse
+	29, // 39: ManagerService.UnregisterAgent:output_type -> google.protobuf.Empty
+	13, // 40: ManagerService.Heartbeat:output_type -> HeartbeatResponse
+	26, // 41: ManagerService.SubmitQueryExecution:output_type -> QueryExecutionResponse
+	28, // 42: ManagerService.ReportQueryResult:output_type -> QueryResultResponse
+	26, // [26:43] is the sub-list for method output_type
+	9,  // [9:26] is the sub-list for method input_type
+	9,  // [9:9] is the sub-list for extension type_name
+	9,  // [9:9] is the sub-list for extension extendee
+	0,  // [0:9] is the sub-list for field type_name
 }
 
 func init() { file_proto_rpc_proto_init() }
@@ -2134,7 +1849,7 @@ func file_proto_rpc_proto_init() {
 			GoPackagePath: reflect.TypeOf(x{}).PkgPath(),
 			RawDescriptor: unsafe.Slice(unsafe.StringData(file_proto_rpc_proto_rawDesc), len(file_proto_rpc_proto_rawDesc)),
 			NumEnums:      1,
-			NumMessages:   33,
+			NumMessages:   28,
 			NumExtensions: 0,
 			NumServices:   2,
 		},
