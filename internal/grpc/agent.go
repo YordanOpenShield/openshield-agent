@@ -14,6 +14,13 @@ import (
 	"google.golang.org/protobuf/types/known/emptypb"
 )
 
+func min(a, b int) int {
+	if a < b {
+		return a
+	}
+	return b
+}
+
 // ClearAgentKeyring clears the agent's credentials from the keyring.
 func clearAgentKeyring() error {
 	_ = keyring.Delete("openshield-agent", "agent_id")
@@ -74,10 +81,13 @@ func (c *ManagerClient) RegisterAgent(ctx context.Context) (*proto.RegisterAgent
 	}
 
 	// Save agent credentials
+	log.Printf("[AGENT] Received token from manager (len=%d): %s...", len(resp.Token), resp.Token[:min(10, len(resp.Token))])
 	creds := utils.AgentCredentials{AgentID: resp.Id, AgentToken: resp.Token}
 	if err := utils.SaveAgentCredentials(creds); err != nil {
+		log.Printf("[AGENT] Failed to save credentials: %v", err)
 		return nil, err
 	}
+	log.Printf("[AGENT] Credentials saved successfully")
 
 	// Generate private key and CSR (Certificate Signing Request) for the agent
 	err = utils.GeneratePrivateKey()

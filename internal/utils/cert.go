@@ -84,14 +84,7 @@ func RequestCSRSigning(csr []byte) (*CertResponse, error) {
 	if err != nil {
 		return nil, err
 	}
-
-	// Create a new HTTP request to the manager
-	req, err := http.NewRequest("POST", "http://"+config.GlobalConfig.MANAGER_ADDRESS+":"+config.GlobalConfig.MANAGER_API_PORT+"/api/certs/sign", bytes.NewReader(csr))
-	if err != nil {
-		return nil, err
-	}
-	req.Header.Set("X-Agent-Token", creds.AgentToken)
-	req.Header.Set("Content-Type", "application/json")
+	log.Printf("[AGENT] Using agent ID: %s, Token length: %d", creds.AgentID, len(creds.AgentToken))
 
 	// Get all local addresses
 	addrs, err := GetAllLocalAddresses()
@@ -111,19 +104,78 @@ func RequestCSRSigning(csr []byte) (*CertResponse, error) {
 	if err != nil {
 		return nil, err
 	}
-	req.Body = io.NopCloser(bytes.NewReader(bodyBytes))
-	req.ContentLength = int64(len(bodyBytes))
 
-	client := &http.Client{}
+	// Create a new HTTP request to the manager
+	req, err := http.NewRequest("POST", "http://"+config.GlobalConfig.MANAGER_ADDRESS+":"+config.GlobalConfig.MANAGER_API_PORT+"/api/certs/sign", bytes.NewReader(bodyBytes))
+	if err != nil {
+		return nil, err
+	}
+	req.Header.Set("X-Agent-Token", creds.AgentToken)
+	req.Header.Set("Content-Type", "application/json")
+
+	// Load CA cert for TLS verification if available
+	tlsConfig := &tls.Config{}
+	caCertPath := filepath.Join(config.CertsPath, "ca.crt")
+	if caCert, err := os.ReadFile(caCertPath); err == nil {
+		caCertPool := x509.NewCertPool()
+		if caCertPool.AppendCertsFromPEM(caCert) {
+			tlsConfig.RootCAs = caCertPool
+			log.Printf("[AGENT] Loaded CA cert for TLS verification")
+		}
+	} else {
+		// CA cert doesn't exist yet (first enrollment), skip verification for this request
+		tlsConfig.InsecureSkipVerify = true
+		log.Printf("[AGENT] CA cert not found, using insecure TLS for bootstrap")
+	}
+
+	tr := &http.Transport{TLSClientConfig: tlsConfig}
+	client := &http.Client{
+		Transport: tr,
+		CheckRedirect: func(req *http.Request, via []*http.Request) error {
+			return http.ErrUseLastResponse // Don't auto-follow redirects
+		},
+	}
 	resp, err := client.Do(req)
 	if err != nil {
 		return nil, err
 	}
+
+	// Handle redirect manually to preserve body
+	if resp.StatusCode >= 300 && resp.StatusCode < 400 {
+		redirectURL := resp.Header.Get("Location")
+		resp.Body.Close()
+		log.Printf("[AGENT] Following redirect to: %s", redirectURL)
+
+		// Create new request to redirect URL with same body
+		req, err = http.NewRequest("POST", redirectURL, bytes.NewReader(bodyBytes))
+		if err != nil {
+			return nil, err
+		}
+		req.Header.Set("X-Agent-Token", creds.AgentToken)
+		req.Header.Set("Content-Type", "application/json")
+
+		resp, err = client.Do(req)
+		if err != nil {
+			return nil, err
+		}
+	}
 	defer resp.Body.Close()
 
+	// Read response body
+	respBody, err := io.ReadAll(resp.Body)
+	if err != nil {
+		return nil, fmt.Errorf("failed to read response body: %w", err)
+	}
+
+	// Check for non-OK status
+	if resp.StatusCode != http.StatusOK {
+		return nil, fmt.Errorf("manager returned status %d: %s", resp.StatusCode, string(respBody))
+	}
+
+	// Parse JSON response
 	var certResp CertResponse
-	if err := json.NewDecoder(resp.Body).Decode(&certResp); err != nil {
-		return nil, err
+	if err := json.Unmarshal(respBody, &certResp); err != nil {
+		return nil, fmt.Errorf("failed to parse response: %w, body: %s", err, string(respBody))
 	}
 	return &certResp, nil
 }
